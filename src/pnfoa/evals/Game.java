@@ -1,9 +1,12 @@
 package pnfoa.evals;
 
+import java.io.FileNotFoundException;
 import java.text.*;
 import java.util.*;
 
-public class Game {
+import pnfoa.util.CSVParser;
+
+public class Game implements Comparable<Game> {
 	private int id;
 	private String location;
 	private String homeTeam;
@@ -38,15 +41,69 @@ public class Game {
 		official.addGame(this);
 	}
 	
-	public List<Official> getOfficials(String pos) { return officials.get(pos); }
+	public static Map<Integer, Game> readGames(String fileName, Map<String, Official> officials) {
+		Map<Integer, Game> games = new TreeMap<>();
+		try {
+			CSVParser parser = new CSVParser(fileName);
+			
+			while (parser.hasNextRecord()) {
+				Map<String, String> record = parser.nextRecord();
+				int id = Integer.parseInt(record.get("GameID"));
+				
+				if (!games.containsKey(id)) {
+					games.put(id, new Game(id,
+										   record.get("SiteName"),
+										   record.get("HomeTeams"),
+										   record.get("AwayTeams"),
+										   record.get("FromDate"),
+										   record.get("LevelName")));
+				}
+				Game game = games.get(id);
+				
+				String firstName = record.get("FirstName");
+				String lastName = record.get("LastName");
+				
+				if (!officials.containsKey(lastName + ", " + firstName)) {
+					officials.put(lastName + ", " + firstName, new Official(firstName, lastName));
+				}
+				Official official = officials.get(lastName + ", " + firstName);
+				game.addOfficial(official, record.get("PositionName").replaceAll("\\d", ""));
+			}		
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (ParseException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+		System.out.println(games.size() + " games read");
+		return games;
+	}
 	
+	public List<Official> getOfficials(String pos) { return officials.get(pos); }
 	public int getId() { return id; }
 	public String getHomeTeam() { return homeTeam; }
 	public String getAwayTeam() { return awayTeam; }
 	public Date getDate() { return date; }
-	public String getLevel() { return level; }
-	
+	public String getLevel() { return level; }	
+
+	@Override
 	public String toString() {
 		return String.format("%s: %s @ %s (%s) - %s", date, awayTeam, homeTeam, level, officials.values());
+	}
+	
+	@Override
+	public int compareTo(Game other) {
+		return this.getId() - other.getId();
+	}
+	
+	public boolean equals(Game other) {
+		return this.compareTo(other) == 0;
+	}
+	
+	@Override
+	public int hashCode() {
+		return Integer.hashCode(this.getId());
 	}
 }

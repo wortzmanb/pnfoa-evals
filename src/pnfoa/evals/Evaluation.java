@@ -1,11 +1,14 @@
 package pnfoa.evals;
 
+import java.io.FileNotFoundException;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
-public class Evaluation {
+import pnfoa.util.CSVParser;
+
+public class Evaluation implements Comparable<Evaluation> {
 	private int id;
 	private Game game;
 	private Official evaluator;
@@ -46,6 +49,44 @@ public class Evaluation {
 		comments.put("Summary", comment);
 	}
 	
+	public static Map<Integer, Evaluation> readEvals(String fileName, Map<String, Official> officials, Map<Integer, Game> games) {
+		Map<Integer, Evaluation> evals = new TreeMap<>();
+		try {
+			CSVParser parser = new CSVParser(fileName);
+			
+			while (parser.hasNextRecord()) {
+				Map<String, String> record = parser.nextRecord();
+				Official evaluator = officials.get(record.get("Evaluator Name"));
+				Official official = officials.get(record.get("Official Name"));
+				Game game = games.get(Integer.parseInt(record.get("Game ID")));
+				
+				int id = Integer.parseInt(record.get("Evaluation ID"));
+				if (!evals.containsKey(id)) {
+					evals.put(id, new Evaluation(id,
+												 game,
+												 evaluator,
+												 official,
+												 record.get("Date Submitted")));
+				}
+				Evaluation eval = evals.get(id);
+				eval.addScore(record.get("Evaluation Criteria Name"), Integer.parseInt(record.get("Criteria Value")), record.get("Criteria Comments"));
+				eval.addSummaryComment(record.get("Summary Comments"));
+			}
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (NumberFormatException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (ParseException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} 
+		
+		System.out.println(evals.size() + " evaluations read");
+		return evals;
+	}
+	
 	public int getId() { return id; }
 	public Game getGame() { return game; }
 	public Official getEvaluator() { return evaluator; }
@@ -54,7 +95,22 @@ public class Evaluation {
 	public Map<String, Integer> getScores() { return scores; }
 	public Map<String, String> getComments() { return comments; }
 	
+	@Override
 	public String toString() {
 		return String.format("%s from %s on game #%d: %s", official, evaluator, game.getId(), scores);
+	}
+	
+	@Override
+	public int compareTo(Evaluation other) {
+		return this.getId() - other.getId();
+	}
+	
+	public boolean equals(Evaluation other) {
+		return this.compareTo(other) == 0;
+	}
+	
+	@Override
+	public int hashCode() {
+		return Integer.hashCode(this.getId());
 	}
 }
