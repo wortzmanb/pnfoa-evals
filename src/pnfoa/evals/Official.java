@@ -59,6 +59,7 @@ public class Official implements Comparable<Official> {
 	public String getEmail() { return this.email; }
 	public String getTier() { return this.tier; }
 	public List<Game> getGamesWorked() { return this.gamesWorked; }
+	public int getNumGamesWorked() { return this.gamesWorked == null ? 0 : this.gamesWorked.size(); }
 	
 	@Override
 	public String toString() {
