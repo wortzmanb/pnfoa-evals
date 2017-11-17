@@ -81,12 +81,14 @@ public class Game implements Comparable<Game> {
 		return games;
 	}
 	
-	public List<Official> getOfficials(String pos) { return officials.get(pos); }
 	public int getId() { return id; }
+	public Date getDate() { return date; }
+	public String getLocation() { return location; }
 	public String getHomeTeam() { return homeTeam; }
 	public String getAwayTeam() { return awayTeam; }
-	public Date getDate() { return date; }
 	public String getLevel() { return level; }	
+	public List<Official> getOfficials(String pos) { return officials.get(pos) == null ? new ArrayList<Official>() : officials.get(pos); }
+	public Map<String, List<Official>> getOfficials() { return officials;	}
 
 	@Override
 	public String toString() {
