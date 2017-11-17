@@ -4,18 +4,25 @@ import java.io.*;
 import java.text.ParseException;
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 
 import pnfoa.util.*;
 import pnfoa.evals.*;
+import pnfoa.evals.gui.*;
 
 
-public class TestRunner {
+public class TestRunner implements ItemListener {
+	private JPanel centerPanel;
+	private Map<String, Official> officials;
+	private Map<Integer, Game> games;
+	private Map<Integer, Evaluation> evals;
+	
 	public static void main(String[] args) {
 		Scanner kb = new Scanner(System.in);
 		System.out.print("Officials file? ");
 		String offFileName = kb.nextLine();
 		Map<String, Official> officials = Official.readOfficials(offFileName);
-
 		
 		System.out.print("Assignments file? ");
 		String assFileName = kb.nextLine();		
@@ -25,42 +32,62 @@ public class TestRunner {
 		String evalFileName = kb.nextLine();
 		Map<Integer, Evaluation> evals = Evaluation.readEvals(evalFileName, officials, games);
 		
-//		for (Evaluation eval : evals.values() ) {
-//			System.out.println(eval);
-//		}
-
 		kb.close();
 		
-		showGui(officials, games, evals);
+		TestRunner runner = new TestRunner(officials, games, evals);
+		runner.showGui();
+	}
+	
+	public TestRunner(Map<String, Official> officials, Map<Integer, Game> games, Map<Integer, Evaluation> evals) {
+		this.officials = officials;
+		this.games = games;
+		this.evals = evals;
 	}
 
-	private static void showGui(Map<String, Official> officials, Map<Integer, Game> games,
-			Map<Integer, Evaluation> evals) {
+	private void showGui() {
 		JFrame frame = new JFrame("Evals App -- TEST");
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		frame.setSize(800, 600);
+
+		JPanel panel = new JPanel(new BorderLayout());
+		frame.setContentPane(panel);
+
+		String[] viewStrings = {"Officials", "Games", "Evaluations"};
+		JComboBox<String> viewList = new JComboBox<>(viewStrings);
+		viewList.setSelectedIndex(0);
+		panel.add(viewList, BorderLayout.NORTH);
+		centerPanel = new JPanel();
+		panel.add(centerPanel, BorderLayout.CENTER);
+		updateView("Officials");
 		
-		Object[] colNames = {"Game #", "Game Date", "Teams", "Evaluator", "Official", "Scores"};
-		
-		List<Object[]> rows = new ArrayList<>();
-		for (Evaluation eval : evals.values()) {
-			Game g = eval.getGame();
-			List<Object> data = new ArrayList<>();
-			
-			data.add(g.getId());
-			data.add(g.getDate());
-			data.add(g.getAwayTeam() + " @ " + g.getHomeTeam() + " (" + g.getLevel() + ")");
-			data.add(eval.getEvaluator());
-			data.add(eval.getOfficial());
-			data.add(eval.getScores());
-			
-			rows.add(data.toArray());
-		}
-		
-		JTable table = new JTable(rows.toArray(new Object[1][1]), colNames);
-		JScrollPane scrollPane = new JScrollPane(table);
-		table.setFillsViewportHeight(true);
-		frame.getContentPane().add(scrollPane);
 		frame.pack();
 		frame.setVisible(true);
+	}
+
+	@Override
+	public void itemStateChanged(ItemEvent e) {
+		if (e.getStateChange() == ItemEvent.SELECTED) {
+			JComboBox<String> cb = (JComboBox<String>)e.getSource();
+			String viewName = (String)cb.getSelectedItem();
+			updateView(viewName);
+		}
+	}
+
+	private void updateView(String viewName) {
+		JTable table;
+		if (viewName.equals("Evaluations")) {
+			table = new JTable(new EvaluationTableModel(new ArrayList<Evaluation>(evals.values())));
+		} else if (viewName.equals("Officials")) {
+			table = new JTable(new OfficialTableModel(new ArrayList<Official>(officials.values())));
+		} else { // if (viewName.equals("Games")) {
+			table = new JTable(new GameTableModel(new ArrayList<Game>(games.values())));
+		}
+		table.setAutoCreateRowSorter(true);
+		table.setFillsViewportHeight(true);
+
+		JScrollPane scrollPane = new JScrollPane(table);
+		centerPanel.removeAll();
+		centerPanel.add(scrollPane, BorderLayout.CENTER);
+		centerPanel.repaint();
 	}	
 }
