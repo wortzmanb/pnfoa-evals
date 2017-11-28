@@ -11,6 +11,8 @@ public class Official implements Comparable<Official> {
 	private String email;
 	private String tier;
 	private List<Game> gamesWorked;
+	private List<Evaluation> evalsGiven;
+	private List<Evaluation> evalsReceived;
 	
 	public Official(String firstName, String lastName, String email, String tier) {
 		this.firstName = firstName;
@@ -25,10 +27,40 @@ public class Official implements Comparable<Official> {
 	
 	public void addGame(Game g) {
 		if (gamesWorked == null) {
-			gamesWorked = new ArrayList<Game>();
+			gamesWorked = new ArrayList<>();
 		}
 		
 		gamesWorked.add(g);
+	}
+	
+	public void addEvalGiven(Evaluation e) {
+		if (evalsGiven == null) {
+			evalsGiven = new ArrayList<>();
+		}
+		evalsGiven.add(e);
+	}
+	
+	public void addEvalReceived(Evaluation e) {
+		if (evalsReceived == null) {
+			evalsReceived = new ArrayList<>();
+		}
+		evalsReceived.add(e);
+	}
+	
+	public double getAverageScoreGiven() {
+		return getAverage(evalsGiven);
+	}
+	
+	public double getAverageScoreReceived() {
+		return getAverage(evalsReceived);
+	}
+	
+	private double getAverage(List<Evaluation> evals) {
+		double total = 0;
+		for (Evaluation eval : evals) {
+			total += eval.getCompositeScore();
+		}
+		return (total / evals.size());
 	}
 	
 	public static Map<String, Official> readOfficials(String fileName) {
@@ -60,6 +92,10 @@ public class Official implements Comparable<Official> {
 	public String getTier() { return this.tier; }
 	public List<Game> getGamesWorked() { return this.gamesWorked; }
 	public int getNumGamesWorked() { return this.gamesWorked == null ? 0 : this.gamesWorked.size(); }
+	public List<Evaluation> getEvalsGiven() { return this.evalsGiven; }
+	public int getNumEvalsGiven() { return this.evalsGiven == null ? 0 : this.evalsGiven.size(); }
+	public List<Evaluation> getEvalsReceived() { return this.evalsReceived; }
+	public int getNumEvalsReceived() { return this.evalsReceived == null ? 0 : this.evalsReceived.size(); }
 	
 	@Override
 	public String toString() {

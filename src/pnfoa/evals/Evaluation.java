@@ -9,6 +9,8 @@ import java.util.*;
 import pnfoa.util.CSVParser;
 
 public class Evaluation implements Comparable<Evaluation> {
+	private static Map<String, Double> critWeights;
+	
 	private int id;
 	private Game game;
 	private Official evaluator;
@@ -16,6 +18,13 @@ public class Evaluation implements Comparable<Evaluation> {
 	private Date date;
 	private Map<String, Integer> scores;
 	private Map<String, String> comments;
+	
+	static {
+		critWeights = new HashMap<>();
+		critWeights.put("Rules & Mechanics", 0.4);
+		critWeights.put("Communication", 0.4);
+		critWeights.put("Intangibles", 0.2);
+	}
 
 	public Evaluation(int id, Game game, Official evaluator, Official official, String date) throws ParseException {
 		this.id = id;
@@ -49,6 +58,19 @@ public class Evaluation implements Comparable<Evaluation> {
 		comments.put("Summary", comment);
 	}
 	
+	public double getCompositeScore() {
+		double score = 0;
+		for (String crit : scores.keySet()) {
+			if (critWeights.containsKey(crit)) {
+				double critWeight = critWeights.get(crit);
+				double critScore = scores.get(crit);
+				score += (critWeight * critScore);
+			}
+		}
+		
+		return score;
+	}
+	
 	public static Map<Integer, Evaluation> readEvals(String fileName, Map<String, Official> officials, Map<Integer, Game> games) {
 		Map<Integer, Evaluation> evals = new TreeMap<>();
 		try {
@@ -71,6 +93,11 @@ public class Evaluation implements Comparable<Evaluation> {
 				Evaluation eval = evals.get(id);
 				eval.addScore(record.get("Evaluation Criteria Name"), Integer.parseInt(record.get("Criteria Value")), record.get("Criteria Comments"));
 				eval.addSummaryComment(record.get("Summary Comments"));
+				
+				if (evaluator.getEvalsGiven() == null || !evaluator.getEvalsGiven().contains(eval)) 
+					evaluator.addEvalGiven(eval);
+				if (official.getEvalsReceived() == null || !official.getEvalsReceived().contains(eval))
+					official.addEvalReceived(eval);
 			}
 		} catch (FileNotFoundException e) {
 			// TODO Auto-generated catch block

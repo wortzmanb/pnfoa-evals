@@ -34,8 +34,16 @@ public class TestRunner implements ItemListener {
 		
 		kb.close();
 		
-		TestRunner runner = new TestRunner(officials, games, evals);
-		runner.showGui();
+		Official brett = officials.get("Wortzman, Brett");
+		System.out.println(brett + ": ");
+		System.out.println("   " + brett.getNumGamesWorked() + " games worked");
+		System.out.println("   " + brett.getNumEvalsGiven() + " evals given (average = " + brett.getAverageScoreGiven() + ")");
+		System.out.println("       " + brett.getEvalsGiven());
+		System.out.println("   " + brett.getNumEvalsReceived() + " evals received (average = " + brett.getAverageScoreReceived() + ")");
+		System.out.println("       " + brett.getEvalsReceived());
+		
+//		TestRunner runner = new TestRunner(officials, games, evals);
+//		runner.showGui();
 	}
 	
 	public TestRunner(Map<String, Official> officials, Map<Integer, Game> games, Map<Integer, Evaluation> evals) {
