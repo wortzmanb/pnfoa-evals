@@ -11,11 +11,13 @@ import pnfoa.util.*;
 import pnfoa.evals.*;
 import pnfoa.evals.gui.*;
 
-public class GuiRunner {
+
+public class TestRunner {
+//	private JPanel centerPanel;
 	private Map<String, Official> officials;
 	private Map<Integer, Game> games;
 	private Map<Integer, Evaluation> evals;
-
+	
 	public static void main(String[] args) {
 		Scanner kb = new Scanner(System.in);
 		System.out.print("Directory? ");
@@ -35,17 +37,24 @@ public class GuiRunner {
 		
 		kb.close();
 		
-		GuiRunner runner = new GuiRunner(officials, games, evals);
+//		Official brett = officials.get("Wortzman, Brett");
+//		System.out.println(brett + ": ");
+//		System.out.println("   " + brett.getNumGamesWorked() + " games worked");
+//		System.out.println("   " + brett.getNumEvalsGiven() + " evals given (average = " + brett.getAverageScoreGiven() + ")");
+//		System.out.println("       " + brett.getEvalsGiven());
+//		System.out.println("   " + brett.getNumEvalsReceived() + " evals received (average = " + brett.getAverageScoreReceived() + ")");
+//		System.out.println("       " + brett.getEvalsReceived());
+		
+		TestRunner runner = new TestRunner(officials, games, evals);
 		runner.showGui();
 	}
 	
-	
-	public GuiRunner(Map<String, Official> officials, Map<Integer, Game> games, Map<Integer, Evaluation> evals) {
+	public TestRunner(Map<String, Official> officials, Map<Integer, Game> games, Map<Integer, Evaluation> evals) {
 		this.officials = officials;
 		this.games = games;
 		this.evals = evals;
 	}
-	
+
 	private void showGui() {
 		JFrame frame = new JFrame("Evals App -- TEST");
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -122,6 +131,5 @@ public class GuiRunner {
  
             column.setPreferredWidth(Math.max(headerWidth, cellWidth));
         }
-    }		
-
+    }	
 }
