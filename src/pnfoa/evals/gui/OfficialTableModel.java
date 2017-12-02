@@ -10,7 +10,7 @@ public class OfficialTableModel extends AbstractTableModel {
 	 */
 	private static final long serialVersionUID = -8820665206299457464L;
 	
-	private String[] columnNames = {"Name", "Tier", "# Games Worked"};
+	private String[] columnNames = {"Name", "Tier", "# Games Worked", "Part. Points"};
 	private List<Official> officials;
 	private int rowCount;
 	
@@ -51,6 +51,7 @@ public class OfficialTableModel extends AbstractTableModel {
 			case 0: return official.getName();
 			case 1: return official.getTier();
 			case 2: return official.getNumGamesWorked();
+			case 3: return official.getParticipationPoints();
 			default: return null;
 		}
 	}

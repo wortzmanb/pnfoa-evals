@@ -9,16 +9,17 @@ public class Official implements Comparable<Official> {
 	private String firstName;
 	private String lastName;
 	private String email;
-	private String tier;
+	private Tier tier;
 	private List<Game> gamesWorked;
 	private List<Evaluation> evalsGiven;
 	private List<Evaluation> evalsReceived;
+	private int partPoints;
 	
 	public Official(String firstName, String lastName, String email, String tier) {
 		this.firstName = firstName;
 		this.lastName = lastName;
 		this.email = email;
-		this.tier = tier;
+		this.tier = Tier.parse(tier);
 	}
 	
 	public Official(String firstName, String lastName) {
@@ -31,6 +32,7 @@ public class Official implements Comparable<Official> {
 		}
 		
 		gamesWorked.add(g);
+		addPartPoints(g.getPartPointsFor(getTier()));
 	}
 	
 	public void addEvalGiven(Evaluation e) {
@@ -45,6 +47,11 @@ public class Official implements Comparable<Official> {
 			evalsReceived = new ArrayList<>();
 		}
 		evalsReceived.add(e);
+	}
+	
+	public void addPartPoints(int points) {
+		partPoints += points;
+		partPoints = Math.min(partPoints, 100);
 	}
 	
 	public double getAverageScoreGiven() {
@@ -92,13 +99,14 @@ public class Official implements Comparable<Official> {
 	
 	public String getName() { return this.lastName + ", " + this.firstName; }
 	public String getEmail() { return this.email; }
-	public String getTier() { return this.tier; }
+	public Tier getTier() { return this.tier; }
 	public List<Game> getGamesWorked() { return this.gamesWorked; }
 	public int getNumGamesWorked() { return this.gamesWorked == null ? 0 : this.gamesWorked.size(); }
 	public List<Evaluation> getEvalsGiven() { return this.evalsGiven; }
 	public int getNumEvalsGiven() { return this.evalsGiven == null ? 0 : this.evalsGiven.size(); }
 	public List<Evaluation> getEvalsReceived() { return this.evalsReceived; }
 	public int getNumEvalsReceived() { return this.evalsReceived == null ? 0 : this.evalsReceived.size(); }
+	public int getParticipationPoints() { return this.partPoints; }
 	
 	@Override
 	public String toString() {

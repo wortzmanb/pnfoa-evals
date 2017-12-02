@@ -2,9 +2,11 @@ import java.util.*;
 import javax.swing.*;
 import javax.swing.table.*;
 import java.awt.*;
+import java.io.FileNotFoundException;
 
 import pnfoa.evals.*;
 import pnfoa.evals.gui.*;
+import pnfoa.util.CSVParser;
 
 
 public class GuiRunner {
@@ -30,10 +32,31 @@ public class GuiRunner {
 //		String evalFileName = kb.nextLine();
 		Map<Integer, Evaluation> evals = Evaluation.readEvals(directoryName + "\\Evaluations.csv", officials, games);
 		
+		readPartPoints(directoryName + "\\Participation.csv", officials);
+		
 		kb.close();
 		
 		GuiRunner runner = new GuiRunner(officials, games, evals);
 		runner.showGui();
+	}
+	
+	private static void readPartPoints(String fileName, Map<String, Official> officials) {
+		try {
+			CSVParser parser = new CSVParser(fileName);
+			
+			while (parser.hasNextRecord()) {
+				Map<String, String> record = parser.nextRecord();
+				if (record == null) continue;
+				
+				Official official = officials.get(record.get("Official Name"));
+				if (official == null) continue;
+				
+				official.addPartPoints(Integer.parseInt(record.get("Points")));
+			}
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 	
 	public GuiRunner(Map<String, Official> officials, Map<Integer, Game> games, Map<Integer, Evaluation> evals) {

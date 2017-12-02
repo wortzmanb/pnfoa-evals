@@ -12,7 +12,7 @@ public class Game implements Comparable<Game> {
 	private String homeTeam;
 	private String awayTeam;
 	private Date date;
-	private String level;
+	private Level level;
 	private Map<String, List<Official>> officials;
 
 	public Game(int id, String loc, String home, String away, String date, String level) throws ParseException {
@@ -22,7 +22,7 @@ public class Game implements Comparable<Game> {
 		this.awayTeam = away;
 		DateFormat df = new SimpleDateFormat("MM/dd/yyyy h:mm:ss a");
 		this.date = df.parse(date);
-		this.level = level;
+		this.level = Level.parse(level);
 	}
 	
 	public void addOfficial(Official official, String pos) {
@@ -39,6 +39,24 @@ public class Game implements Comparable<Game> {
 		
 		officials.put(pos, list);
 		official.addGame(this);
+	}
+	
+	public int getPartPointsFor(Tier t) {
+		switch (getLevel()) {
+			case TrainingSubVarsity:
+			case JV:
+			case Sophomore:
+			case Freshman:
+			case JrHigh8thGrade:
+			case JrHigh7thGrade:
+				return t == Tier.V1 ? 20 : 10; 
+			case Rec10min:
+			case Rec9min:
+			case Rec8min:
+				return t == Tier.V1 ? 15 : 10;
+			default: 
+				return 0;
+		}
 	}
 	
 	public static Map<Integer, Game> readGames(String fileName, Map<String, Official> officials) {
@@ -87,7 +105,7 @@ public class Game implements Comparable<Game> {
 	public String getLocation() { return location; }
 	public String getHomeTeam() { return homeTeam; }
 	public String getAwayTeam() { return awayTeam; }
-	public String getLevel() { return level; }	
+	public Level getLevel() { return level; }	
 	public List<Official> getOfficials(String pos) { return officials.get(pos) == null ? new ArrayList<Official>() : officials.get(pos); }
 	public Map<String, List<Official>> getOfficials() { return officials;	}
 

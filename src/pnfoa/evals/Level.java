@@ -11,5 +11,14 @@ public enum Level {
 	Rec10min,
 	Rec9min,
 	Rec8min,
-	Scrimmage
+	Scrimmage,
+	Other;
+	
+	public static Level parse(String s) {
+		try {
+			return Level.valueOf(s.replaceAll("[\\W]", ""));
+		} catch (IllegalArgumentException e) {
+			return Level.Other;
+		}
+	}
 }
