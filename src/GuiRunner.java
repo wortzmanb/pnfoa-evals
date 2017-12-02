@@ -1,13 +1,8 @@
 import java.util.*;
-import java.util.List;
-import java.io.*;
-import java.text.ParseException;
 import javax.swing.*;
 import javax.swing.table.*;
 import java.awt.*;
-import java.awt.event.*;
 
-import pnfoa.util.*;
 import pnfoa.evals.*;
 import pnfoa.evals.gui.*;
 

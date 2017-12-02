@@ -19,6 +19,8 @@ public class CSVReader_Test {
 			System.out.println("   " + Arrays.toString(parts));
 			kb.nextLine();
 		}
+		input.close();
+		kb.close();
 	}
 
 }

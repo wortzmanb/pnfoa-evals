@@ -1,12 +1,12 @@
 package pnfoa.util;
 
+
 import com.opencsv.*;
 import java.util.*;
 import java.io.*;
 
 public class CSVParser {
 	private String[] fields;
-//	private Scanner input;
 	private CSVReader reader;
 	private Iterator<String[]> iterator;
 	
@@ -42,7 +42,7 @@ public class CSVParser {
 			values = iterator.next();
 		} while (values.length == 0 && hasNextRecord());
 		
-		if (values.length == 0)
+		if (values.length == 0 || (values.length == 1 && values[0].isEmpty()))
 			return null;
 			
 		if (values.length != fields.length) 
@@ -54,48 +54,8 @@ public class CSVParser {
 		}
 		
 		return record;
-		/*
-		String line;
-		do {
-			line = input.nextLine();
-		} while (line.isEmpty() && input.hasNextLine());
-		
-		while (line.endsWith("<p>") || line.endsWith("<P>") || line.endsWith("<br>") || line.endsWith("<BR>")) {
-			line += input.nextLine();
-		}
-
-		if (line.isEmpty() && !hasNextRecord()) {
-			return null;
-		}
-		
-		String[] values = line.split(",");
-//		if (values.length != fields.length) throw new IllegalArgumentException("Wrong number of values in a record");
-		
-		Map<String, String> record = new HashMap<String, String>();
-		for (int i = 0, valueIndex = 0; i < fields.length; i++, valueIndex++) {
-			if (valueIndex < values.length)
-				if (values[valueIndex].startsWith("\"")) {
-					String value = "";
-					while (!values[valueIndex].endsWith("\"")) {
-						value += values[valueIndex] + ",";
-						valueIndex++;
-					}
-					value += values[valueIndex];
-					record.put(fields[i], value.substring(1, value.length() - 1));
-				} else {
-					record.put(fields[i], values[valueIndex]);
-				}
-			else
-				record.put(fields[i], null);
-		}
-		
-		return record;
-		*/
 	}
 	
 	public int getNumFields() { return fields.length; }
 	public String[] getFields() { return fields; }
-	
-//	public int getNumRecords() { return records.size(); }
-//	public List<Map<String, String>> getRecords() { return records; }
 }
