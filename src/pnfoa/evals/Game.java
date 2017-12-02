@@ -4,7 +4,7 @@ import java.io.FileNotFoundException;
 import java.text.*;
 import java.util.*;
 
-import pnfoa.util.CSVParser;
+import pnfoa.util.*;
 
 public class Game implements Comparable<Game> {
 	private int id;
@@ -48,8 +48,9 @@ public class Game implements Comparable<Game> {
 			
 			while (parser.hasNextRecord()) {
 				Map<String, String> record = parser.nextRecord();
-				int id = Integer.parseInt(record.get("GameID"));
+				if (record == null) continue;
 				
+				int id = Integer.parseInt(record.get("GameID"));
 				if (!games.containsKey(id)) {
 					games.put(id, new Game(id,
 										   record.get("SiteName"),

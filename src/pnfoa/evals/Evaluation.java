@@ -6,7 +6,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
-import pnfoa.util.CSVParser;
+import pnfoa.util.*;
 
 public class Evaluation implements Comparable<Evaluation> {
 	private static Map<String, Double> critWeights;
@@ -78,21 +78,23 @@ public class Evaluation implements Comparable<Evaluation> {
 			
 			while (parser.hasNextRecord()) {
 				Map<String, String> record = parser.nextRecord();
-				Official evaluator = officials.get(record.get("Evaluator Name"));
-				Official official = officials.get(record.get("Official Name"));
-				Game game = games.get(Integer.parseInt(record.get("Game ID")));
+				if (record == null) continue;
 				
-				int id = Integer.parseInt(record.get("Evaluation ID"));
+				Official evaluator = officials.get(record.get("Evaluator_Name"));
+				Official official = officials.get(record.get("Official_Name"));
+				Game game = games.get(Integer.parseInt(record.get("GameID")));
+				
+				int id = Integer.parseInt(record.get("Evaluation_ID"));
 				if (!evals.containsKey(id)) {
 					evals.put(id, new Evaluation(id,
 												 game,
 												 evaluator,
 												 official,
-												 record.get("Date Submitted")));
+												 record.get("Date_Submitted")));
 				}
 				Evaluation eval = evals.get(id);
-				eval.addScore(record.get("Evaluation Criteria Name"), Integer.parseInt(record.get("Criteria Value")), record.get("Criteria Comments"));
-				eval.addSummaryComment(record.get("Summary Comments"));
+				eval.addScore(record.get("Evaluation_Criteria_Name"), Integer.parseInt(record.get("Criteria_Value")), record.get("Criteria_Comments"));
+				eval.addSummaryComment(record.get("Summary_Comments"));
 				
 				if (evaluator.getEvalsGiven() == null || !evaluator.getEvalsGiven().contains(eval)) 
 					evaluator.addEvalGiven(eval);
