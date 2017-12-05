@@ -26,6 +26,7 @@ public class TextRunner {
 		Map<Integer, Evaluation> evals = Evaluation.readEvals(directoryName + "\\Evaluations.csv", officials, games);
 		
 		readPartPoints(directoryName + "\\Participation.csv", officials);
+		readTestScores(directoryName + "\\Test.csv", officials);
 		
 		kb.close();
 		
@@ -33,11 +34,14 @@ public class TextRunner {
 		System.out.println(brett + ": ");
 		System.out.println("   " + brett.getNumGamesWorked() + " games worked");
 		System.out.println("   " + brett.getGamesWorked());
-		System.out.println("   " + brett.getParticipationPoints() + " participation points");
-		System.out.println("   " + brett.getNumEvalsGiven() + " evals given (average = " + brett.getAverageScoreGiven() + ")");
-		System.out.println("       " + brett.getEvalsGiven());
 		System.out.println("   " + brett.getNumEvalsReceived() + " evals received (average = " + brett.getAverageScoreReceived() + ")");
 		System.out.println("       " + brett.getEvalsReceived());
+		System.out.println("   " + brett.getNumEvalsGiven() + " evals given (average = " + brett.getAverageScoreGiven() + ")");
+		System.out.println("       " + brett.getEvalsGiven());
+		System.out.println("  Test score: " + brett.getTestScore());
+		System.out.println("  Participation points: " + brett.getParticipationPoints());
+		System.out.println("  Eval average: " + brett.getAverageScoreReceived());
+		System.out.println("  COMPOSITE SCORE: " + brett.getCompositeScore());
     }
 	
 	private static void readPartPoints(String fileName, Map<String, Official> officials) {
@@ -58,4 +62,29 @@ public class TextRunner {
 			e.printStackTrace();
 		}
 	}
+	
+	private static void readTestScores(String fileName, Map<String, Official> officials) {
+		try {
+			CSVParser parser = new CSVParser(fileName);
+			
+			while (parser.hasNextRecord()) {
+				Map<String, String> record = parser.nextRecord();
+				if (record == null) continue;
+				
+				Official official = officials.get(record.get("Official Name"));
+				if (official == null) continue;
+				
+				String strScore1 = record.get("Test Score");
+				double score1 = strScore1 == null || strScore1.isEmpty() ? 0 : Double.parseDouble(strScore1);
+				
+				String strScore2 = record.get("Test Score 2");
+				double score2 = strScore2 == null || strScore2.isEmpty() ? 0 : Double.parseDouble(strScore2);
+				
+				official.setTestScore(score1);
+			}
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}	
 }

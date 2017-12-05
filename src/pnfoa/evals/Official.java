@@ -14,6 +14,15 @@ public class Official implements Comparable<Official> {
 	private List<Evaluation> evalsGiven;
 	private List<Evaluation> evalsReceived;
 	private int partPoints;
+	private double testScore;
+	
+	public static final int PART_POINTS_MAX = 100;
+	public static final int EVAL_MAX = 9;
+	public static final int TEST_MAX = 100;
+	
+	public static final double PART_POINTS_WEIGHT = 0.1;
+	public static final double TEST_WEIGHT = 0.2;
+	public static final double EVAL_WEIGHT = 0.7;
 	
 	public Official(String firstName, String lastName, String email, String tier) {
 		this.firstName = firstName;
@@ -54,6 +63,10 @@ public class Official implements Comparable<Official> {
 		partPoints = Math.min(partPoints, 100);
 	}
 	
+	public void setTestScore(double score) {
+		testScore = score;
+	}
+	
 	public double getAverageScoreGiven() {
 		return getAverage(evalsGiven);
 	}
@@ -63,11 +76,19 @@ public class Official implements Comparable<Official> {
 	}
 	
 	private double getAverage(List<Evaluation> evals) {
+		if (evals == null) return 0;
+		
 		double total = 0;
 		for (Evaluation eval : evals) {
 			total += eval.getCompositeScore();
 		}
 		return (total / evals.size());
+	}
+	
+	public double getCompositeScore() {
+		return (this.getParticipationPoints() / PART_POINTS_MAX * PART_POINTS_WEIGHT) + 
+			   (this.getTestScore() / TEST_MAX * TEST_WEIGHT) +
+			   (this.getAverageScoreReceived() / EVAL_MAX * EVAL_WEIGHT);
 	}
 	
 	public static Map<String, Official> readOfficials(String fileName) {
@@ -107,6 +128,7 @@ public class Official implements Comparable<Official> {
 	public List<Evaluation> getEvalsReceived() { return this.evalsReceived; }
 	public int getNumEvalsReceived() { return this.evalsReceived == null ? 0 : this.evalsReceived.size(); }
 	public int getParticipationPoints() { return this.partPoints; }
+	public double getTestScore() { return this.testScore; }
 	
 	@Override
 	public String toString() {
