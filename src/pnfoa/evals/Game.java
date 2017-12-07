@@ -1,8 +1,10 @@
 package pnfoa.evals;
 
-import java.io.FileNotFoundException;
+import java.io.*;
 import java.text.*;
 import java.util.*;
+import java.time.*;
+import java.time.format.*;
 
 import pnfoa.util.*;
 
@@ -11,7 +13,7 @@ public class Game implements Comparable<Game> {
 	private String location;
 	private String homeTeam;
 	private String awayTeam;
-	private Date date;
+	private LocalDateTime date;
 	private Level level;
 	private Map<String, List<Official>> officials;
 
@@ -20,8 +22,8 @@ public class Game implements Comparable<Game> {
 		this.location = loc;
 		this.homeTeam = home;
 		this.awayTeam = away;
-		DateFormat df = new SimpleDateFormat("MM/dd/yyyy h:mm:ss a");
-		this.date = df.parse(date);
+		DateTimeFormatter df = DateTimeFormatter.ofPattern("M/d/yyyy h:mm:ss a");
+		this.date = LocalDateTime.parse(date, df);
 		this.level = Level.parse(level);
 	}
 	
@@ -100,8 +102,13 @@ public class Game implements Comparable<Game> {
 		return games;
 	}
 	
+	public String getDateString() {
+		String day = date.getDayOfWeek().toString().substring(0, 3).toLowerCase();
+		day = day.substring(0, 1).toUpperCase() + day.substring(1);
+		return day + " " + date.format(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM)); 
+	}
 	public int getId() { return id; }
-	public Date getDate() { return date; }
+	public LocalDateTime getDate() { return date; }
 	public String getLocation() { return location; }
 	public String getHomeTeam() { return homeTeam; }
 	public String getAwayTeam() { return awayTeam; }
@@ -111,7 +118,7 @@ public class Game implements Comparable<Game> {
 
 	@Override
 	public String toString() {
-		return String.format("%s: %s @ %s (%s) - %s", date, awayTeam, homeTeam, level, officials.values());
+		return String.format("%s: %s @ %s (%s) - %s", getDateString(), awayTeam, homeTeam, level, officials.values());
 	}
 	
 	@Override

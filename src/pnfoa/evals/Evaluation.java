@@ -1,10 +1,10 @@
 package pnfoa.evals;
 
-import java.io.FileNotFoundException;
-import java.text.DateFormat;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
+import java.io.*;
+import java.text.*;
 import java.util.*;
+import java.time.*;
+import java.time.format.*;
 
 import pnfoa.util.*;
 
@@ -15,7 +15,7 @@ public class Evaluation implements Comparable<Evaluation> {
 	private Game game;
 	private Official evaluator;
 	private Official official;
-	private Date date;
+	private LocalDateTime date;
 	private Map<String, Integer> scores;
 	private Map<String, String> comments;
 	
@@ -31,8 +31,8 @@ public class Evaluation implements Comparable<Evaluation> {
 		this.game = game;
 		this.evaluator = evaluator;
 		this.official = official;
-		DateFormat df = new SimpleDateFormat("MM/dd/yyyy h:mm");
-		this.date = df.parse(date);
+		DateTimeFormatter df = DateTimeFormatter.ofPattern("M/d/yyyy H:mm");
+		this.date = LocalDateTime.parse(date, df);
 	}
 	
 	public void addScore(String criterion, int score) {
@@ -120,7 +120,7 @@ public class Evaluation implements Comparable<Evaluation> {
 	public Game getGame() { return game; }
 	public Official getEvaluator() { return evaluator; }
 	public Official getOfficial() { return official; }
-	public Date getDate() { return date; }
+	public LocalDateTime getDate() { return date; }
 	public Map<String, Integer> getScores() { return scores; }
 	public Map<String, String> getComments() { return comments; }
 	
