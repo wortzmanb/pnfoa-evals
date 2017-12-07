@@ -13,12 +13,15 @@ public class GuiRunner {
 	private Map<String, Official> officials;
 	private Map<Integer, Game> games;
 	private Map<Integer, Evaluation> evals;
+	
+	public static final String DIRECTORY = "D:\\OneDrive\\PNFOA Board\\2017 - Evaluations\\Evals App\\Move-Up";
 
 	public static void main(String[] args) {
 		Scanner kb = new Scanner(System.in);
 		
-		System.out.print("Directory? ");
-		String directoryName = kb.nextLine();
+//		System.out.print("Directory? ");
+//		String directoryName = kb.nextLine();
+		String directoryName = DIRECTORY;
 				
 //		System.out.print("Officials file? ");
 //		String offFileName = kb.nextLine();

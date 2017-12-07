@@ -5,13 +5,15 @@ import java.util.*;
 import pnfoa.evals.*;
 import pnfoa.util.CSVParser;
 
-
 public class TextRunner {
+	public static final String DIRECTORY = "D:\\OneDrive\\PNFOA Board\\2017 - Evaluations\\Evals App\\Move-Up";
+	
 	public static void main(String[] args) {
 		Scanner kb = new Scanner(System.in);
 		
-		System.out.print("Directory? ");
-		String directoryName = kb.nextLine();
+//		System.out.print("Directory? ");
+//		String directoryName = kb.nextLine();
+		String directoryName = DIRECTORY;
 		
 //		System.out.print("Officials file? ");
 //		String offFileName = kb.nextLine();
@@ -38,6 +40,8 @@ public class TextRunner {
 		System.out.println("       " + brett.getEvalsReceived());
 		System.out.println("   " + brett.getNumEvalsGiven() + " evals given (average = " + brett.getAverageScoreGiven() + ")");
 		System.out.println("       " + brett.getEvalsGiven());
+		System.out.println("        " + brett.getNumEvalsLate() + " late");
+		System.out.println("        " + Arrays.toString(brett.getEvalsGiven().stream().filter(e -> e.isLate()).toArray(Evaluation[]::new)));
 		System.out.println("  Test score: " + brett.getTestScore());
 		System.out.println("  Participation points: " + brett.getParticipationPoints());
 		System.out.println("  Eval average: " + brett.getAverageScoreReceived());

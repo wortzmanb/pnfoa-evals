@@ -10,7 +10,7 @@ public class EvaluationTableModel extends AbstractTableModel {
 	 */
 	private static final long serialVersionUID = -5096358054313988840L;
 	
-	private String[] columnNames = {"Game #", "Game Date", "Teams", "Evaluator", "Official", "Scores"};
+	private String[] columnNames = {"Game #", "Game Date", "Due", "Submitted", "Evaluator", "Official", "Scores", "Late?"};
 	private List<Evaluation> evals;
 	private int rowCount;
 	
@@ -50,10 +50,13 @@ public class EvaluationTableModel extends AbstractTableModel {
 		switch (columnIndex) {
 			case 0: return eval.getGame().getId();
 			case 1: return eval.getGame().getDate();
-			case 2: return eval.getGame().getAwayTeam() + " @ " + eval.getGame().getHomeTeam() + " (" + eval.getGame().getLevel() + ")";
-			case 3: return eval.getEvaluator();
-			case 4: return eval.getOfficial();
-			case 5: return eval.getScores();
+//			case 2: return eval.getGame().getAwayTeam() + " @ " + eval.getGame().getHomeTeam() + " (" + eval.getGame().getLevel() + ")";
+			case 2: return eval.dueDate();
+			case 3: return eval.getDate();
+			case 4: return eval.getEvaluator();
+			case 5: return eval.getOfficial();
+			case 6: return eval.getScores();
+			case 7: return eval.isLate();
 			default: return null;
 		}
 	}

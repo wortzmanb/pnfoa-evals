@@ -5,11 +5,13 @@ import java.text.*;
 import java.util.*;
 import java.time.*;
 import java.time.format.*;
+import java.time.temporal.*;
 
 import pnfoa.util.*;
 
 public class Evaluation implements Comparable<Evaluation> {
 	private static Map<String, Double> critWeights;
+	private static final LocalDateTime FIRST_DUE = LocalDateTime.of(2017, 9, 13, 23, 59, 59);
 	
 	private int id;
 	private Game game;
@@ -69,6 +71,20 @@ public class Evaluation implements Comparable<Evaluation> {
 		}
 		
 		return score;
+	}
+	
+	public LocalDateTime dueDate() {
+		LocalDateTime due = game.getDate().with(TemporalAdjusters.next(DayOfWeek.WEDNESDAY));
+		due = due.withHour(23).withMinute(59).withSecond(59);
+		
+		while (due.isBefore(FIRST_DUE)) {
+			due = due.plusWeeks(1);
+		}
+		return due;
+	}
+	
+	public boolean isLate() {
+		return date.isAfter(dueDate());
 	}
 	
 	public static Map<Integer, Evaluation> readEvals(String fileName, Map<String, Official> officials, Map<Integer, Game> games) {

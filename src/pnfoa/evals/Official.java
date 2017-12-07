@@ -1,6 +1,7 @@
 package pnfoa.evals;
 
 import java.io.FileNotFoundException;
+import java.time.LocalDateTime;
 import java.util.*;
 
 import pnfoa.util.*;
@@ -85,10 +86,29 @@ public class Official implements Comparable<Official> {
 		return (total / evals.size());
 	}
 	
+	public double getEvalPenalty() {
+		if (getEvalsGiven() == null) return 0.00;
+
+		Set<LocalDateTime> missed = new HashSet<>();
+		for (Evaluation e : getEvalsGiven()) {
+			if (e.isLate()) {
+				missed.add(e.dueDate());
+			}
+		}
+		
+		switch (missed.size()) {
+			case 0:
+			case 1: return 0.00;
+			case 2: return 0.25;
+			case 3: return 0.50;
+			default: return 1.00;
+		}
+	}
+	
 	public double getCompositeScore() {
 		return (this.getParticipationPoints() / PART_POINTS_MAX * PART_POINTS_WEIGHT) + 
 			   (this.getTestScore() / TEST_MAX * TEST_WEIGHT) +
-			   (this.getAverageScoreReceived() / EVAL_MAX * EVAL_WEIGHT);
+			   ((this.getAverageScoreReceived() - getEvalPenalty()) / EVAL_MAX * EVAL_WEIGHT);
 	}
 	
 	public static Map<String, Official> readOfficials(String fileName) {
@@ -125,6 +145,7 @@ public class Official implements Comparable<Official> {
 	public int getNumGamesWorked() { return this.gamesWorked == null ? 0 : this.gamesWorked.size(); }
 	public List<Evaluation> getEvalsGiven() { return this.evalsGiven; }
 	public int getNumEvalsGiven() { return this.evalsGiven == null ? 0 : this.evalsGiven.size(); }
+	public int getNumEvalsLate() { return (int)this.evalsGiven.stream().filter(e -> e.isLate()).count(); }
 	public List<Evaluation> getEvalsReceived() { return this.evalsReceived; }
 	public int getNumEvalsReceived() { return this.evalsReceived == null ? 0 : this.evalsReceived.size(); }
 	public int getParticipationPoints() { return this.partPoints; }
