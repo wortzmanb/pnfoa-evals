@@ -10,7 +10,7 @@ public class OfficialTableModel extends AbstractTableModel {
 	 */
 	private static final long serialVersionUID = -8820665206299457464L;
 	
-	private String[] columnNames = {"Name", "Tier", "# Games Worked", "# Evals Given", "Given Avg.", "# Evals Received", "Received Avg.", "# Evals Late"};
+	private String[] columnNames = {"Name", "Tier", "# Games Worked", "# Evals Given", "Given Avg.", "# Evals Received", "Received Avg.", "# Evals Late", "Eval. Adjustment"};
 	private List<Official> officials;
 	private int rowCount;
 	
@@ -57,6 +57,7 @@ public class OfficialTableModel extends AbstractTableModel {
 			case 6: return official.getAverageScoreReceived();
 			case 7: return official.getNumEvalsLate();
 			case 8: return official.getCompositeScore();
+			case 9: return official.getAdjustment();
 			default: return null;
 		}
 	}
