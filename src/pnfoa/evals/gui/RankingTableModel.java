@@ -1,20 +1,23 @@
 package pnfoa.evals.gui;
 
-import javax.swing.table.AbstractTableModel;
-import java.util.*;
-import pnfoa.evals.*;
+import java.util.List;
 
-public class OfficialTableModel extends AbstractTableModel {
+import javax.swing.table.AbstractTableModel;
+
+import pnfoa.evals.Official;
+
+public class RankingTableModel extends AbstractTableModel {
+
 	/**
 	 * 
 	 */
-	private static final long serialVersionUID = -8820665206299457464L;
-	
-	private String[] columnNames = {"Name", "Tier", "# Games Worked", "# Evals Given", "Given Avg.", "# Evals Received", "Received Avg.", "# Evals Late"};
+	private static final long serialVersionUID = 803033384115475256L;
+
+	private String[] columnNames = {"Name", "Tier", "Part. Points", "Test Score", "Eval. Avg.", "Penalty", "Unadj. COMPOSITE", "Adj. COMPOSITE"};
 	private List<Official> officials;
 	private int rowCount;
 	
-	public OfficialTableModel(List<Official> officials) {
+	public RankingTableModel(List<Official> officials) {
 		this.officials = officials;
 		this.rowCount = officials.size();
 	}
@@ -50,15 +53,13 @@ public class OfficialTableModel extends AbstractTableModel {
 		switch (columnIndex) {
 			case 0: return official.getName();
 			case 1: return official.getTier();
-			case 2: return official.getNumGamesWorked();
-			case 3: return official.getNumEvalsGiven();
-			case 4: return official.getAverageScoreGiven();
-			case 5: return official.getNumEvalsReceived();
-			case 6: return official.getAverageScoreReceived();
-			case 7: return official.getNumEvalsLate();
-			case 8: return official.getCompositeScore();
+			case 2: return official.getParticipationPoints();
+			case 3: return official.getTestScore();
+			case 4: return official.getAverageScoreReceived();
+			case 5: return official.getEvalPenalty();
+			case 6: return official.getCompositeScore();
+			case 7: return official.getAdjustedComposite();
 			default: return null;
 		}
 	}
-
 }

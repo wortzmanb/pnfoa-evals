@@ -105,6 +105,7 @@ public class GuiRunner {
 		JTabbedPane tabbedPane = new JTabbedPane();
 		tabbedPane.setTabLayoutPolicy(JTabbedPane.SCROLL_TAB_LAYOUT);
 		
+		tabbedPane.addTab("Rankings", makePanel("Rankings"));
 		tabbedPane.addTab("Officials", makePanel("Officials"));
 		tabbedPane.addTab("Games", makePanel("Games"));
 		tabbedPane.addTab("Evaluations", makePanel("Evaluations"));
@@ -112,6 +113,7 @@ public class GuiRunner {
 		panel.add(tabbedPane);
 		frame.pack();
 		frame.setVisible(true);
+		frame.toFront();
 	}
 
 	private JComponent makePanel(String panelName) {
@@ -120,8 +122,12 @@ public class GuiRunner {
 			table = new JTable(new EvaluationTableModel(new ArrayList<Evaluation>(evals.values())));
 		} else if (panelName.equals("Officials")) {
 			table = new JTable(new OfficialTableModel(new ArrayList<Official>(officials.values())));
-		} else { // if (viewName.equals("Games")) {
+		} else  if (panelName.equals("Games")) {
 			table = new JTable(new GameTableModel(new ArrayList<Game>(games.values())));
+		} else if (panelName.equals("Rankings")) {
+			table = new JTable(new RankingTableModel(new ArrayList<Official>(officials.values())));
+		} else {
+			throw new IllegalArgumentException("Invalid tab name");
 		}
 		table.setAutoCreateRowSorter(true);
 		table.setFillsViewportHeight(true);

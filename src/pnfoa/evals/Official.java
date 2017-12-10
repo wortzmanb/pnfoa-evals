@@ -72,16 +72,34 @@ public class Official implements Comparable<Official> {
 		return getAverage(evalsGiven);
 	}
 	
+	public double getAdjustedAverageScoreGiven() {
+		return getAdjustedAverage(evalsGiven); 
+	}
+	
 	public double getAverageScoreReceived() {
 		return getAverage(evalsReceived);
 	}
+
+	public double getAdjustedAverageScoreReceived() {
+		return getAdjustedAverage(evalsReceived); 
+	}
 	
 	private double getAverage(List<Evaluation> evals) {
-		if (evals == null) return 0;
+		if (evals == null) return Double.NaN;
 		
 		double total = 0;
 		for (Evaluation eval : evals) {
 			total += eval.getCompositeScore();
+		}
+		return (total / evals.size());
+	}
+	
+	private double getAdjustedAverage(List<Evaluation> evals) {
+		if (evals == null) return Double.NaN;
+		
+		double total = 0;
+		for (Evaluation eval : evals) {
+			total += (eval.getCompositeScore() + eval.getEvaluator().getAdjustment());
 		}
 		return (total / evals.size());
 	}
@@ -105,10 +123,52 @@ public class Official implements Comparable<Official> {
 		}
 	}
 	
+	public double getAdjustment() {
+		return Evaluation.getGlobalAverage() - getAverageScoreGiven();
+	}
+	
 	public double getCompositeScore() {
 		return (this.getParticipationPoints() / PART_POINTS_MAX * PART_POINTS_WEIGHT) + 
 			   (this.getTestScore() / TEST_MAX * TEST_WEIGHT) +
 			   ((this.getAverageScoreReceived() - getEvalPenalty()) / EVAL_MAX * EVAL_WEIGHT);
+	}
+	
+	public double getAdjustedComposite() {
+		return (this.getParticipationPoints() / PART_POINTS_MAX * PART_POINTS_WEIGHT) + 
+			   (this.getTestScore() / TEST_MAX * TEST_WEIGHT) +
+			   ((this.getAdjustedAverageScoreReceived() - getEvalPenalty()) / EVAL_MAX * EVAL_WEIGHT);
+	}
+	
+	public String getName() { return this.lastName + ", " + this.firstName; }
+	public String getEmail() { return this.email; }
+	public Tier getTier() { return this.tier; }
+	public List<Game> getGamesWorked() { return this.gamesWorked; }
+	public int getNumGamesWorked() { return this.gamesWorked == null ? 0 : this.gamesWorked.size(); }
+	public List<Evaluation> getEvalsGiven() { return this.evalsGiven; }
+	public int getNumEvalsGiven() { return this.evalsGiven == null ? 0 : this.evalsGiven.size(); }
+	public int getNumEvalsLate() { return this.evalsGiven == null ? 0 : (int)this.evalsGiven.stream().filter(e -> e.isLate()).count(); }
+	public List<Evaluation> getEvalsReceived() { return this.evalsReceived; }
+	public int getNumEvalsReceived() { return this.evalsReceived == null ? 0 : this.evalsReceived.size(); }
+	public int getParticipationPoints() { return this.partPoints; }
+	public double getTestScore() { return this.testScore; }
+	
+	@Override
+	public String toString() {
+		return String.format("%s, %s (%s)", lastName, firstName, tier);
+	}
+
+	@Override
+	public int compareTo(Official other) {
+		return this.getName().compareToIgnoreCase(other.getName());
+	}
+	
+	public boolean equals(Official other) {
+		return this.getName().equalsIgnoreCase(other.getName());
+	}
+	
+	@Override
+	public int hashCode() {
+		return this.getName().hashCode();
 	}
 	
 	public static Map<String, Official> readOfficials(String fileName) {
@@ -136,37 +196,5 @@ public class Official implements Comparable<Official> {
 		
 		System.out.println(officials.size() + " officials read");
 		return officials;
-	}
-	
-	public String getName() { return this.lastName + ", " + this.firstName; }
-	public String getEmail() { return this.email; }
-	public Tier getTier() { return this.tier; }
-	public List<Game> getGamesWorked() { return this.gamesWorked; }
-	public int getNumGamesWorked() { return this.gamesWorked == null ? 0 : this.gamesWorked.size(); }
-	public List<Evaluation> getEvalsGiven() { return this.evalsGiven; }
-	public int getNumEvalsGiven() { return this.evalsGiven == null ? 0 : this.evalsGiven.size(); }
-	public int getNumEvalsLate() { return (int)this.evalsGiven.stream().filter(e -> e.isLate()).count(); }
-	public List<Evaluation> getEvalsReceived() { return this.evalsReceived; }
-	public int getNumEvalsReceived() { return this.evalsReceived == null ? 0 : this.evalsReceived.size(); }
-	public int getParticipationPoints() { return this.partPoints; }
-	public double getTestScore() { return this.testScore; }
-	
-	@Override
-	public String toString() {
-		return String.format("%s, %s (%s)", lastName, firstName, tier);
-	}
-
-	@Override
-	public int compareTo(Official other) {
-		return this.getName().compareToIgnoreCase(other.getName());
-	}
-	
-	public boolean equals(Official other) {
-		return this.getName().equalsIgnoreCase(other.getName());
-	}
-	
-	@Override
-	public int hashCode() {
-		return this.getName().hashCode();
 	}
 }

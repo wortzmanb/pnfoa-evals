@@ -35,17 +35,20 @@ public class TextRunner {
 		Official brett = officials.get("Wortzman, Brett");
 		System.out.println(brett + ": ");
 		System.out.println("   " + brett.getNumGamesWorked() + " games worked");
-		System.out.println("   " + brett.getGamesWorked());
+		System.out.println("       " + brett.getGamesWorked());
 		System.out.println("   " + brett.getNumEvalsReceived() + " evals received (average = " + brett.getAverageScoreReceived() + ")");
 		System.out.println("       " + brett.getEvalsReceived());
 		System.out.println("   " + brett.getNumEvalsGiven() + " evals given (average = " + brett.getAverageScoreGiven() + ")");
 		System.out.println("       " + brett.getEvalsGiven());
-		System.out.println("        " + brett.getNumEvalsLate() + " late");
-		System.out.println("        " + Arrays.toString(brett.getEvalsGiven().stream().filter(e -> e.isLate()).toArray(Evaluation[]::new)));
+		System.out.println("       " + brett.getNumEvalsLate() + " late");
+		System.out.println("         " + Arrays.toString(brett.getEvalsGiven().stream().filter(e -> e.isLate()).toArray(Evaluation[]::new)));
+		System.out.println("       Global Average: " + Evaluation.getGlobalAverage());
+		System.out.println("       Adjustment: " + brett.getAdjustment());
 		System.out.println("  Test score: " + brett.getTestScore());
 		System.out.println("  Participation points: " + brett.getParticipationPoints());
 		System.out.println("  Eval average: " + brett.getAverageScoreReceived());
-		System.out.println("  COMPOSITE SCORE: " + brett.getCompositeScore());
+		System.out.println("  Late penalty: " + brett.getEvalPenalty());
+		System.out.println("  Unadj. COMPOSITE SCORE: " + brett.getCompositeScore());
     }
 	
 	private static void readPartPoints(String fileName, Map<String, Official> officials) {

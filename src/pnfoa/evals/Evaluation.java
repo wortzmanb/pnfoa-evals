@@ -13,6 +13,10 @@ public class Evaluation implements Comparable<Evaluation> {
 	private static Map<String, Double> critWeights;
 	private static final LocalDateTime FIRST_DUE = LocalDateTime.of(2017, 9, 13, 23, 59, 59);
 	
+	private static Collection<Evaluation> allEvals;
+	private static double globalAverage;
+	private static boolean isAverageStale;
+	
 	private int id;
 	private Game game;
 	private Official evaluator;
@@ -22,6 +26,7 @@ public class Evaluation implements Comparable<Evaluation> {
 	private Map<String, String> comments;
 	
 	static {
+		allEvals = new HashSet<>();
 		critWeights = new HashMap<>();
 		critWeights.put("Rules & Mechanics", 0.4);
 		critWeights.put("Communication", 0.4);
@@ -35,6 +40,7 @@ public class Evaluation implements Comparable<Evaluation> {
 		this.official = official;
 		DateTimeFormatter df = DateTimeFormatter.ofPattern("M/d/yyyy H:mm");
 		this.date = LocalDateTime.parse(date, df);
+		allEvals.add(this);
 	}
 	
 	public void addScore(String criterion, int score) {
@@ -51,6 +57,7 @@ public class Evaluation implements Comparable<Evaluation> {
 			comments = new TreeMap<>();
 		}
 		comments.put(criterion, comment);
+		isAverageStale = true;
 	}
 
 	public void addSummaryComment(String comment) {
@@ -85,6 +92,41 @@ public class Evaluation implements Comparable<Evaluation> {
 	
 	public boolean isLate() {
 		return date.isAfter(dueDate());
+	}
+
+	public int getId() { return id; }
+	public Game getGame() { return game; }
+	public Official getEvaluator() { return evaluator; }
+	public Official getOfficial() { return official; }
+	public LocalDateTime getDate() { return date; }
+	public Map<String, Integer> getScores() { return scores; }
+	public Map<String, String> getComments() { return comments; }
+	
+	@Override
+	public String toString() {
+		return String.format("%s from %s on game #%d: %s", official, evaluator, game.getId(), scores);
+	}
+	
+	@Override
+	public int compareTo(Evaluation other) {
+		return this.getId() - other.getId();
+	}
+	
+	public boolean equals(Evaluation other) {
+		return this.compareTo(other) == 0;
+	}
+	
+	@Override
+	public int hashCode() {
+		return Integer.hashCode(this.getId());
+	}
+	
+	public static double getGlobalAverage() {
+		if (isAverageStale) {
+			globalAverage = allEvals.stream().mapToDouble(Evaluation::getCompositeScore).average().getAsDouble();
+			isAverageStale = false;
+		}
+		return globalAverage;
 	}
 	
 	public static Map<Integer, Evaluation> readEvals(String fileName, Map<String, Official> officials, Map<Integer, Game> games) {
@@ -130,32 +172,5 @@ public class Evaluation implements Comparable<Evaluation> {
 		
 		System.out.println(evals.size() + " evaluations read");
 		return evals;
-	}
-	
-	public int getId() { return id; }
-	public Game getGame() { return game; }
-	public Official getEvaluator() { return evaluator; }
-	public Official getOfficial() { return official; }
-	public LocalDateTime getDate() { return date; }
-	public Map<String, Integer> getScores() { return scores; }
-	public Map<String, String> getComments() { return comments; }
-	
-	@Override
-	public String toString() {
-		return String.format("%s from %s on game #%d: %s", official, evaluator, game.getId(), scores);
-	}
-	
-	@Override
-	public int compareTo(Evaluation other) {
-		return this.getId() - other.getId();
-	}
-	
-	public boolean equals(Evaluation other) {
-		return this.compareTo(other) == 0;
-	}
-	
-	@Override
-	public int hashCode() {
-		return Integer.hashCode(this.getId());
 	}
 }
