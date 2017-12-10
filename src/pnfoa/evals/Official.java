@@ -16,6 +16,8 @@ public class Official implements Comparable<Official> {
 	private List<Evaluation> evalsReceived;
 	private int partPoints;
 	private double testScore;
+	private int rank;
+	private int adjRank;
 	
 	public static final int PART_POINTS_MAX = 100;
 	public static final int EVAL_MAX = 9;
@@ -25,11 +27,20 @@ public class Official implements Comparable<Official> {
 	public static final double TEST_WEIGHT = 0.2;
 	public static final double EVAL_WEIGHT = 0.7;
 	
+	private static List<Official> allOfficials;
+	
+	static {
+		allOfficials = new ArrayList<>();
+	}
+	
 	public Official(String firstName, String lastName, String email, String tier) {
 		this.firstName = firstName;
 		this.lastName = lastName;
 		this.email = email;
 		this.tier = Tier.parse(tier);
+		this.rank = -1;
+		this.adjRank = -1;
+		allOfficials.add(this);
 	}
 	
 	public Official(String firstName, String lastName) {
@@ -85,7 +96,7 @@ public class Official implements Comparable<Official> {
 	}
 	
 	private double getAverage(List<Evaluation> evals) {
-		if (evals == null) return Double.NaN;
+		if (evals == null) return Double.NEGATIVE_INFINITY;
 		
 		double total = 0;
 		for (Evaluation eval : evals) {
@@ -95,7 +106,7 @@ public class Official implements Comparable<Official> {
 	}
 	
 	private double getAdjustedAverage(List<Evaluation> evals) {
-		if (evals == null) return Double.NaN;
+		if (evals == null) return Double.NEGATIVE_INFINITY;
 		
 		double total = 0;
 		for (Evaluation eval : evals) {
@@ -139,6 +150,20 @@ public class Official implements Comparable<Official> {
 			   ((this.getAdjustedAverageScoreReceived() - getEvalPenalty()) / EVAL_MAX * EVAL_WEIGHT);
 	}
 	
+	public static void calculateRanks() {
+		allOfficials.sort((Official o1, Official o2) -> Double.compare(o2.getCompositeScore(), o1.getCompositeScore()));
+		for (int i = 0; i < allOfficials.size(); i++) {
+			allOfficials.get(i).rank = (i + 1);
+		}
+	}
+	
+	public static void calculateAdjustedRanks() {
+		allOfficials.sort((Official o1, Official o2) -> Double.compare(o2.getAdjustedComposite(), o1.getAdjustedComposite()));
+		for (int i = 0; i < allOfficials.size(); i++) {
+			allOfficials.get(i).adjRank = (i + 1);
+		}
+	}
+	
 	public String getName() { return this.lastName + ", " + this.firstName; }
 	public String getEmail() { return this.email; }
 	public Tier getTier() { return this.tier; }
@@ -151,6 +176,8 @@ public class Official implements Comparable<Official> {
 	public int getNumEvalsReceived() { return this.evalsReceived == null ? 0 : this.evalsReceived.size(); }
 	public int getParticipationPoints() { return this.partPoints; }
 	public double getTestScore() { return this.testScore; }
+	public int getRank() { if (this.rank < 0) calculateRanks(); return this.rank; }
+	public int getAdjustedRank() {if (this.adjRank < 0) calculateAdjustedRanks();  return this.adjRank; }
 	
 	@Override
 	public String toString() {
