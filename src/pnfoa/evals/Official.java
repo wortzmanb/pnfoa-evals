@@ -174,6 +174,28 @@ public class Official implements Comparable<Official> {
 		}
 	}
 	
+	public int getTierRank() {
+		if (this.rank < 0) calculateRanks();
+		int tierCount = 0;
+		for (int i = 0; i < this.rank; i++) {
+			if (allOfficials.get(i).getTier() == this.getTier()) {
+				tierCount++;
+			}
+		}
+		return tierCount;
+	}
+	
+	public int getAdjustedTierRank() {
+		if (this.adjRank < 0) calculateAdjustedRanks();
+		int tierCount = 0;
+		for (int i = 0; i < this.adjRank; i++) {
+			if (allOfficials.get(i).getTier() == this.getTier()) {
+				tierCount++;
+			}
+		}
+		return tierCount;
+	}
+	
 	public String getName() { return this.lastName + ", " + this.firstName; }
 	public String getEmail() { return this.email; }
 	public Tier getTier() { return this.tier; }

@@ -13,7 +13,7 @@ public class RankingTableModel extends AbstractTableModel {
 	 */
 	private static final long serialVersionUID = 803033384115475256L;
 
-	private String[] columnNames = {"Name", "Tier", "Part. Points", "Test Score", "Eval. Avg.", "Penalty", "Unadj. COMPOSITE", "Unadj. RANK", "Adj. COMPOSITE", "Adj. RANK"};
+	private String[] columnNames = {"Name", "Tier", "Part. Points", "Test Score", "Eval. Avg.", "Penalty", "Unadj. COMPOSITE", "Unadj. RANK", "Unadj. Tier Rank", "Adj. COMPOSITE", "Adj. RANK", "Adj. Tier Rank"};
 	private List<Official> officials;
 	private int rowCount;
 	
@@ -59,8 +59,10 @@ public class RankingTableModel extends AbstractTableModel {
 			case 5: return official.getEvalPenalty();
 			case 6: return official.getCompositeScore();
 			case 7: return official.getRank();
-			case 8: return official.getAdjustedComposite();
-			case 9: return official.getAdjustedRank();
+			case 8: return official.getTierRank();
+			case 9: return official.getAdjustedComposite();
+			case 10: return official.getAdjustedRank();
+			case 11: return official.getAdjustedTierRank();
 			default: return null;
 		}
 	}
