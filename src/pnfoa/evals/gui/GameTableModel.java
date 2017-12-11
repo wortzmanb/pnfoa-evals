@@ -59,7 +59,7 @@ public class GameTableModel extends AbstractTableModel {
 			case 6: 
 			case 7: 
 			case 8: 
-			case 9: return game.getOfficials(positions[columnIndex - 5]);
+			case 9: return game.getOfficials(Position.parse(positions[columnIndex - 5]));
 			default: return null;
 		}
 	}

@@ -15,7 +15,7 @@ public class Game implements Comparable<Game> {
 	private String awayTeam;
 	private LocalDateTime date;
 	private Level level;
-	private Map<String, List<Official>> officials;
+	private Map<Position, Collection<Official>> officials;
 
 	public Game(int id, String loc, String home, String away, String date, String level) throws ParseException {
 		this.id = id;
@@ -27,20 +27,24 @@ public class Game implements Comparable<Game> {
 		this.level = Level.parse(level);
 	}
 	
-	public void addOfficial(Official official, String pos) {
+	public void addOfficial(Official official, String p) {
 		if (officials == null) {
-			officials = new HashMap<String, List<Official>>();
+			officials = new HashMap<>();
 		}
+		Position pos = Position.parse(p);
 		
-		List<Official> list = officials.get(pos);
+		Collection<Official> list = officials.get(pos);
 		
 		if (list == null) {
-			list = new ArrayList<Official>();
+			list = new HashSet<Official>();
 		}
 		list.add(official);
 		
 		officials.put(pos, list);
-		official.addGame(this);
+		
+		if (pos != Position.Chains && pos != Position.Evaluator) {
+			official.addGame(this, pos);
+		}
 	}
 	
 	public int getPartPointsFor(Tier t) {
@@ -88,7 +92,7 @@ public class Game implements Comparable<Game> {
 					officials.put(lastName + ", " + firstName, new Official(firstName, lastName));
 				}
 				Official official = officials.get(lastName + ", " + firstName);
-				game.addOfficial(official, record.get("PositionName").replaceAll("\\d", ""));
+				game.addOfficial(official, record.get("PositionName"));
 			}		
 		} catch (FileNotFoundException e) {
 			// TODO Auto-generated catch block
@@ -113,8 +117,8 @@ public class Game implements Comparable<Game> {
 	public String getHomeTeam() { return homeTeam; }
 	public String getAwayTeam() { return awayTeam; }
 	public Level getLevel() { return level; }	
-	public List<Official> getOfficials(String pos) { return officials.get(pos) == null ? new ArrayList<Official>() : officials.get(pos); }
-	public Map<String, List<Official>> getOfficials() { return officials;	}
+	public Collection<Official> getOfficials(Position pos) { return officials.get(pos) == null ? new ArrayList<Official>() : officials.get(pos); }
+	public Map<Position, Collection<Official>> getOfficials() { return officials;	}
 
 	@Override
 	public String toString() {

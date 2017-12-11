@@ -7,5 +7,14 @@ public enum Position {
 	LineJudge,
 	BackJudge,
 	Chains,
-	Evaluator
+	Evaluator,
+	Other;
+	
+	public static Position parse(String s) {
+		try {
+			return Position.valueOf(s.replaceAll("[\\W\\d]", ""));
+		} catch (IllegalArgumentException e) {
+			return Position.Other;
+		}
+	}
 }

@@ -11,9 +11,9 @@ public class Official implements Comparable<Official> {
 	private String lastName;
 	private String email;
 	private Tier tier;
-	private List<Game> gamesWorked;
-	private List<Evaluation> evalsGiven;
-	private List<Evaluation> evalsReceived;
+	private Map<Game, Position> gamesWorked;
+	private Collection<Evaluation> evalsGiven;
+	private Collection<Evaluation> evalsReceived;
 	private int partPoints;
 	private double testScore;
 	private int rank;
@@ -47,18 +47,18 @@ public class Official implements Comparable<Official> {
 		this(firstName, lastName, null, null);
 	}
 	
-	public void addGame(Game g) {
+	public void addGame(Game g, Position p) {
 		if (gamesWorked == null) {
-			gamesWorked = new ArrayList<>();
+			gamesWorked = new HashMap<>();
 		}
 		
-		gamesWorked.add(g);
+		gamesWorked.put(g, p);
 		addPartPoints(g.getPartPointsFor(getTier()));
 	}
 	
 	public void addEvalGiven(Evaluation e) {
 		if (evalsGiven == null) {
-			evalsGiven = new ArrayList<>();
+			evalsGiven = new HashSet<>();
 		}
 		evalsGiven.add(e);
 	}
@@ -95,7 +95,7 @@ public class Official implements Comparable<Official> {
 		return getAdjustedAverage(evalsReceived); 
 	}
 	
-	private double getAverage(List<Evaluation> evals) {
+	private double getAverage(Collection<Evaluation> evals) {
 		if (evals == null) return Double.NEGATIVE_INFINITY;
 		
 		double total = 0;
@@ -105,7 +105,7 @@ public class Official implements Comparable<Official> {
 		return (total / evals.size());
 	}
 	
-	private double getAdjustedAverage(List<Evaluation> evals) {
+	private double getAdjustedAverage(Collection<Evaluation> evals) {
 		if (evals == null) return Double.NEGATIVE_INFINITY;
 		
 		double total = 0;
@@ -116,12 +116,22 @@ public class Official implements Comparable<Official> {
 	}
 	
 	public double getEvalPenalty() {
-		if (getEvalsGiven() == null) return 0.00;
-
-		Set<LocalDateTime> missed = new HashSet<>();
-		for (Evaluation e : getEvalsGiven()) {
-			if (e.isLate()) {
-				missed.add(e.dueDate());
+		if (getGamesWorked() == null) return 0.0;
+		
+		Set<Game> missed = new HashSet<>();
+		for (Game g : getGamesWorked()) {
+			if (g.getLevel() == Level.Varsity) {
+				boolean ok = false;
+				if (getEvalsGiven() != null) {
+					for (Evaluation e : getEvalsGiven()) {
+						if (e.getGame().equals(g) && !e.isLate()) {
+							ok = true;
+						}
+					}
+				}
+				if (!ok) {
+					missed.add(g);
+				}
 			}
 		}
 		
@@ -167,12 +177,13 @@ public class Official implements Comparable<Official> {
 	public String getName() { return this.lastName + ", " + this.firstName; }
 	public String getEmail() { return this.email; }
 	public Tier getTier() { return this.tier; }
-	public List<Game> getGamesWorked() { return this.gamesWorked; }
+	public Collection<Game> getGamesWorked() { return this.gamesWorked == null ? null : this.gamesWorked.keySet(); }
+	public Map<Game, Position> getAssignments() { return this.gamesWorked; }
 	public int getNumGamesWorked() { return this.gamesWorked == null ? 0 : this.gamesWorked.size(); }
-	public List<Evaluation> getEvalsGiven() { return this.evalsGiven; }
+	public Collection<Evaluation> getEvalsGiven() { return this.evalsGiven; }
 	public int getNumEvalsGiven() { return this.evalsGiven == null ? 0 : this.evalsGiven.size(); }
 	public int getNumEvalsLate() { return this.evalsGiven == null ? 0 : (int)this.evalsGiven.stream().filter(e -> e.isLate()).count(); }
-	public List<Evaluation> getEvalsReceived() { return this.evalsReceived; }
+	public Collection<Evaluation> getEvalsReceived() { return this.evalsReceived; }
 	public int getNumEvalsReceived() { return this.evalsReceived == null ? 0 : this.evalsReceived.size(); }
 	public int getParticipationPoints() { return this.partPoints; }
 	public double getTestScore() { return this.testScore; }
