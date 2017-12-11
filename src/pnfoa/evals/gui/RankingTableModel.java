@@ -1,9 +1,11 @@
 package pnfoa.evals.gui;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import javax.swing.table.AbstractTableModel;
 
+import pnfoa.evals.Level;
 import pnfoa.evals.Official;
 
 public class RankingTableModel extends AbstractTableModel {
@@ -13,13 +15,15 @@ public class RankingTableModel extends AbstractTableModel {
 	 */
 	private static final long serialVersionUID = 803033384115475256L;
 
-	private String[] columnNames = {"Name", "Tier", "Part. Points", "Test Score", "Eval. Avg.", "Penalty", "Unadj. COMPOSITE", "Unadj. RANK", "Unadj. Tier Rank", "Adj. COMPOSITE", "Adj. RANK", "Adj. Tier Rank"};
+	private String[] columnNames = {"Name", "Tier", "Rank", "Tier Rank", "Games Worked", "Varsity Games Worked", "Composite", "Part. Points", "Test Score", "Eval. Avg.", "Penalty"};
 	private List<Official> officials;
 	private int rowCount;
+	private boolean adjusted;
 	
-	public RankingTableModel(List<Official> officials) {
-		this.officials = officials;
-		this.rowCount = officials.size();
+	public RankingTableModel(List<Official> officials, boolean adjusted) {
+		this.officials = officials.stream().filter((Official o) -> o.getNumGamesWorked() > 0).collect(Collectors.toList());
+		this.rowCount = this.officials.size();
+		this.adjusted = adjusted;
 	}
 
 	@Override
@@ -53,16 +57,15 @@ public class RankingTableModel extends AbstractTableModel {
 		switch (columnIndex) {
 			case 0: return official.getName();
 			case 1: return official.getTier();
-			case 2: return official.getParticipationPoints();
-			case 3: return official.getTestScore();
-			case 4: return official.getAverageScoreReceived();
-			case 5: return official.getEvalPenalty();
-			case 6: return official.getCompositeScore();
-			case 7: return official.getRank();
-			case 8: return official.getTierRank();
-			case 9: return official.getAdjustedComposite();
-			case 10: return official.getAdjustedRank();
-			case 11: return official.getAdjustedTierRank();
+			case 2: return adjusted ? official.getAdjustedRank() : official.getRank();
+			case 3: return adjusted ? official.getAdjustedTierRank() : official.getTierRank();
+			case 4: return official.getNumGamesWorked();
+			case 5: return official.getNumGamesWorked(Level.Varsity);
+			case 6: return adjusted ? official.getAdjustedComposite() : official.getCompositeScore();
+			case 7: return official.getParticipationPoints();
+			case 8: return official.getTestScore();
+			case 9: return official.getAverageScoreReceived();
+			case 10: return official.getEvalPenalty();
 			default: return null;
 		}
 	}

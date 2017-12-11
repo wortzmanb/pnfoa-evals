@@ -130,14 +130,14 @@ public class GuiRunner {
 			        int rowIndex = rowAtPoint(p);
 			        int colIndex = columnAtPoint(p);
 			        int realColumnIndex = convertColumnIndexToModel(colIndex);
-			        
-			        return model.getToolTipText(rowIndex, realColumnIndex);
+			        String text = model.getToolTipText(rowIndex, realColumnIndex); 
+			        return (text == null ? super.getToolTipText() : text);
 				}
 			};
 		} else  if (panelName.equals("Games")) {
 			table = new JTable(new GameTableModel(new ArrayList<Game>(games.values())));
 		} else if (panelName.equals("Rankings")) {
-			table = new JTable(new RankingTableModel(new ArrayList<Official>(officials.values())));
+			table = new JTable(new RankingTableModel(new ArrayList<Official>(officials.values()), true));
 		} else {
 			throw new IllegalArgumentException("Invalid tab name");
 		}

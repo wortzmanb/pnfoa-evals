@@ -202,6 +202,7 @@ public class Official implements Comparable<Official> {
 	public Collection<Game> getGamesWorked() { return this.gamesWorked == null ? null : this.gamesWorked.keySet(); }
 	public Map<Game, Position> getAssignments() { return this.gamesWorked; }
 	public int getNumGamesWorked() { return this.gamesWorked == null ? 0 : this.gamesWorked.size(); }
+	public int getNumGamesWorked(Level level) { return this.gamesWorked == null ? 0 : (int)(this.gamesWorked.keySet().stream().filter((Game g) -> g.getLevel() == level).count()); }
 	public Collection<Evaluation> getEvalsGiven() { return this.evalsGiven; }
 	public int getNumEvalsGiven() { return this.evalsGiven == null ? 0 : this.evalsGiven.size(); }
 	public int getNumEvalsLate() { return this.evalsGiven == null ? 0 : (int)this.evalsGiven.stream().filter(e -> e.isLate()).count(); }
