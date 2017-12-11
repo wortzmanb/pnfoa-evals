@@ -125,13 +125,12 @@ public class GuiRunner {
 			OfficialTableModel model = new OfficialTableModel(new ArrayList<Official>(officials.values()));
 			table = new JTable(model) {
 				public String getToolTipText(MouseEvent e) {
-					String tip = null;
 			        java.awt.Point p = e.getPoint();
 			        int rowIndex = rowAtPoint(p);
 			        int colIndex = columnAtPoint(p);
 			        int realColumnIndex = convertColumnIndexToModel(colIndex);
-			        String text = model.getToolTipText(rowIndex, realColumnIndex); 
-			        return (text == null ? super.getToolTipText() : text);
+			        String tip = model.getToolTipText(rowIndex, realColumnIndex); 
+			        return (tip == null ? super.getToolTipText() : tip);
 				}
 			};
 		} else  if (panelName.equals("Games")) {
