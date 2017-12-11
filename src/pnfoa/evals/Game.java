@@ -42,7 +42,7 @@ public class Game implements Comparable<Game> {
 		
 		officials.put(pos, list);
 		
-		if (pos != Position.Chains && pos != Position.Evaluator) {
+		if (level != Level.Scrimmage && pos != Position.Chains && pos != Position.Evaluator) {
 			official.addGame(this, pos);
 		}
 	}
