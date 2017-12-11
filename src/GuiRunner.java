@@ -2,6 +2,7 @@ import java.util.*;
 import javax.swing.*;
 import javax.swing.table.*;
 import java.awt.*;
+import java.awt.event.MouseEvent;
 import java.io.FileNotFoundException;
 
 import pnfoa.evals.*;
@@ -14,7 +15,7 @@ public class GuiRunner {
 	private Map<Integer, Game> games;
 	private Map<Integer, Evaluation> evals;
 	
-	public static final String DIRECTORY = "D:\\OneDrive\\PNFOA Board\\2017 - Evaluations\\Evals App\\Move-Up";
+	public static final String DIRECTORY = "C:\\Users\\brettwo\\OneDrive\\PNFOA Board\\2017 - Evaluations\\Evals App\\Move-Up";
 
 	public static void main(String[] args) {
 		Scanner kb = new Scanner(System.in);
@@ -121,7 +122,18 @@ public class GuiRunner {
 		if (panelName.equals("Evaluations")) {
 			table = new JTable(new EvaluationTableModel(new ArrayList<Evaluation>(evals.values())));
 		} else if (panelName.equals("Officials")) {
-			table = new JTable(new OfficialTableModel(new ArrayList<Official>(officials.values())));
+			OfficialTableModel model = new OfficialTableModel(new ArrayList<Official>(officials.values()));
+			table = new JTable(model) {
+				public String getToolTipText(MouseEvent e) {
+					String tip = null;
+			        java.awt.Point p = e.getPoint();
+			        int rowIndex = rowAtPoint(p);
+			        int colIndex = columnAtPoint(p);
+			        int realColumnIndex = convertColumnIndexToModel(colIndex);
+			        
+			        return model.getToolTipText(rowIndex, realColumnIndex);
+				}
+			};
 		} else  if (panelName.equals("Games")) {
 			table = new JTable(new GameTableModel(new ArrayList<Game>(games.values())));
 		} else if (panelName.equals("Rankings")) {
@@ -129,6 +141,7 @@ public class GuiRunner {
 		} else {
 			throw new IllegalArgumentException("Invalid tab name");
 		}
+		
 		table.setAutoCreateRowSorter(true);
 		table.setFillsViewportHeight(true);
 		initColumnSizes(table);

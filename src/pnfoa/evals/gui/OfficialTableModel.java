@@ -62,4 +62,17 @@ public class OfficialTableModel extends AbstractTableModel {
 		}
 	}
 
+	public String getToolTipText(int row, int column) {
+		if (column == 2) {
+			StringBuilder str = new StringBuilder();
+			str.append("<html>");
+			Official official = officials.get(row);
+			for (Map.Entry<Game, Position> entry : official.getAssignments().entrySet()) {
+				Game g = entry.getKey();
+				str.append(String.format("%s: %s @ %s (%s) - %s<br />", g.getDateString(), g.getAwayTeam(), g.getHomeTeam(), g.getLevel(), entry.getValue()));
+			}
+			return str.append("</html>").toString();
+		}
+		return null;
+	}
 }
