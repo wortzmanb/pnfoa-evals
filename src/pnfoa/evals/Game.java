@@ -118,7 +118,15 @@ public class Game implements Comparable<Game> {
 	public String getAwayTeam() { return awayTeam; }
 	public Level getLevel() { return level; }	
 	public Collection<Official> getOfficials(Position pos) { return officials.get(pos) == null ? new ArrayList<Official>() : officials.get(pos); }
-	public Map<Position, Collection<Official>> getOfficials() { return officials;	}
+	public Map<Position, Collection<Official>> getOfficials() { return officials; }
+	public Position getPositionOf(Official official) {
+		for (Position pos : officials.keySet()) {
+			if (officials.get(pos).contains(official)) {
+				return pos;
+			}
+		}
+		return null;
+	}
 
 	@Override
 	public String toString() {
