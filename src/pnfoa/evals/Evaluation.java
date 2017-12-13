@@ -123,7 +123,11 @@ public class Evaluation implements Comparable<Evaluation> {
 	
 	public static double getGlobalAverage() {
 		if (isAverageStale) {
-			globalAverage = allEvals.stream().mapToDouble(Evaluation::getCompositeScore).average().getAsDouble();
+			globalAverage = allEvals.stream()
+									.filter((Evaluation e) -> e.getEvaluator().getTier() != Tier.A1 && e.getEvaluator().getTier() != Tier.A2)
+									.mapToDouble(Evaluation::getCompositeScore)
+									.average()
+									.getAsDouble();
 			isAverageStale = false;
 		}
 		return globalAverage;
