@@ -19,9 +19,9 @@ public class Official implements Comparable<Official> {
 	private int rank;
 	private int adjRank;
 	
-	public static final int PART_POINTS_MAX = 100;
-	public static final int EVAL_MAX = 9;
-	public static final int TEST_MAX = 100;
+	public static final double PART_POINTS_MAX = 100;
+	public static final double EVAL_MAX = 9;
+	public static final double TEST_MAX = 100;
 	
 	public static final double PART_POINTS_WEIGHT = 0.1;
 	public static final double TEST_WEIGHT = 0.2;
