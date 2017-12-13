@@ -64,7 +64,7 @@ public class RankingTableModel extends AbstractTableModel {
 			case 6: return adjusted ? official.getAdjustedComposite() : official.getCompositeScore();
 			case 7: return official.getParticipationPoints();
 			case 8: return official.getTestScore();
-			case 9: return official.getAverageScoreReceived();
+			case 9: return adjusted ? official.getAdjustedAverageScoreReceived() : official.getAverageScoreReceived();
 			case 10: return official.getEvalPenalty();
 			default: return null;
 		}
