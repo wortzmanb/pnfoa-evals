@@ -155,12 +155,18 @@ public class Evaluation implements Comparable<Evaluation> {
 				eval.addSummaryComment(record.get("Summary_Comments"));
 				
 				// don't count evaluations from Apprentices
-				if (evaluator.getTier() == Tier.A1 || evaluator.getTier() == Tier.A2) continue;
+				if (evaluator.getTier() == Tier.A1 || evaluator.getTier() == Tier.A2) {
+					System.out.println("Skipping Apprentice evaluation: " + eval);
+					continue;
+				}
 				
 				// don't count evaluations from officials not on the crew
 				Position evalPos = game.getPositionOf(evaluator); 
 				if (evalPos != null && evalPos != Position.Referee && evalPos != Position.Umpire && 
-					evalPos != Position.HeadLinesman && evalPos != Position.LineJudge && evalPos != Position.BackJudge) continue;
+					evalPos != Position.HeadLinesman && evalPos != Position.LineJudge && evalPos != Position.BackJudge) {
+					System.out.println("Skipping non-crew evaluation: " + eval);
+					continue;
+				}
 				
 				if (evaluator.getEvalsGiven() == null || !evaluator.getEvalsGiven().contains(eval)) 
 					evaluator.addEvalGiven(eval);
