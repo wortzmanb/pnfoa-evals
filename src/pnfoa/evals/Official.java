@@ -3,6 +3,7 @@ package pnfoa.evals;
 import java.io.FileNotFoundException;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import pnfoa.util.*;
 
@@ -80,40 +81,60 @@ public class Official implements Comparable<Official> {
 	}
 	
 	public double getAverageScoreGiven() {
-		return getAverage(evalsGiven);
+		return getAverage(evalsGiven, false);
 	}
 	
 	public double getAdjustedAverageScoreGiven() {
-		return getAdjustedAverage(evalsGiven); 
+		return getAverage(evalsGiven, true); 
 	}
 	
 	public double getAverageScoreReceived() {
-		return getAverage(evalsReceived);
+		return getAverage(evalsReceived, false);
+	}
+	
+	public double getAverageScoreReceived(Position pos) {
+		if (getNumGamesWorked(pos) == 0) return Double.NEGATIVE_INFINITY; 
+				
+		return getAverage(evalsReceived
+				.stream()
+				.filter(e -> e.getGame().getPositionOf(e.getOfficial()) == pos)
+				.collect(Collectors.toList()), false);
 	}
 
 	public double getAdjustedAverageScoreReceived() {
-		return getAdjustedAverage(evalsReceived); 
+		return getAverage(evalsReceived, true); 
 	}
 	
-	private double getAverage(Collection<Evaluation> evals) {
-		if (evals == null) return Double.NEGATIVE_INFINITY;
+	public double getAdjustedAverageScoreReceived(Position pos) {
+		if (getNumGamesWorked(pos) == 0 || evalsReceived == null) return Double.NEGATIVE_INFINITY;
+		
+		double result = getAverage(evalsReceived
+				.stream()
+				.filter(e -> e.getGame().getPositionOf(e.getOfficial()) == pos)
+				.collect(Collectors.toList()), true);
+//		System.out.println(getName() + " @ " + pos + ": " + result);
+		return result;
+	}	
+	
+	private static double getAverage(Collection<Evaluation> evals, boolean adjusted) {
+		if (evals == null || evals.size() == 0) return Double.NEGATIVE_INFINITY;
 		
 		double total = 0;
 		for (Evaluation eval : evals) {
-			total += eval.getCompositeScore();
+			total += (eval.getCompositeScore() + (adjusted ? eval.getEvaluator().getAdjustment() : 0));
 		}
 		return (total / evals.size());
 	}
 	
-	private double getAdjustedAverage(Collection<Evaluation> evals) {
-		if (evals == null) return Double.NEGATIVE_INFINITY;
-		
-		double total = 0;
-		for (Evaluation eval : evals) {
-			total += (eval.getCompositeScore() + eval.getEvaluator().getAdjustment());
-		}
-		return (total / evals.size());
-	}
+//	private double getAdjustedAverage(Collection<Evaluation> evals) {
+//		if (evals == null) return Double.NEGATIVE_INFINITY;
+//		
+//		double total = 0;
+//		for (Evaluation eval : evals) {
+//			total += (eval.getCompositeScore() + eval.getEvaluator().getAdjustment());
+//		}
+//		return (total / evals.size());
+//	}
 	
 	public double getEvalPenalty() {
 		if (getGamesWorked() == null) return 0.0;
@@ -149,15 +170,25 @@ public class Official implements Comparable<Official> {
 	}
 	
 	public double getCompositeScore() {
-		return (this.getParticipationPoints() / PART_POINTS_MAX * PART_POINTS_WEIGHT) + 
-			   (this.getTestScore() / TEST_MAX * TEST_WEIGHT) +
-			   ((this.getAverageScoreReceived() - getEvalPenalty()) / EVAL_MAX * EVAL_WEIGHT);
+		return getCompositeScore(this.getParticipationPoints(), this.getTestScore(), this.getAverageScoreReceived());
 	}
 	
 	public double getAdjustedComposite() {
-		return (this.getParticipationPoints() / PART_POINTS_MAX * PART_POINTS_WEIGHT) + 
-			   (this.getTestScore() / TEST_MAX * TEST_WEIGHT) +
-			   ((this.getAdjustedAverageScoreReceived() - getEvalPenalty()) / EVAL_MAX * EVAL_WEIGHT);
+		return getCompositeScore(this.getParticipationPoints(), this.getTestScore(), this.getAdjustedAverageScoreReceived());
+	}
+	
+	public double getCompositeScore(Position pos) { 
+		return getCompositeScore(this.getParticipationPoints(), this.getTestScore(), this.getAverageScoreReceived(pos));
+	}
+	
+	public double getAdjustedComposite(Position pos) { 
+		return getCompositeScore(this.getParticipationPoints(), this.getTestScore(), this.getAdjustedAverageScoreReceived(pos));
+	}
+	
+	private double getCompositeScore(double part, double test, double evals) {
+		return (part / PART_POINTS_MAX * PART_POINTS_WEIGHT) + 
+			   (test / TEST_MAX * TEST_WEIGHT) +
+			   ((evals - getEvalPenalty()) / EVAL_MAX * EVAL_WEIGHT);
 	}
 	
 	public static void calculateRanks() {
@@ -196,13 +227,48 @@ public class Official implements Comparable<Official> {
 		return tierCount;
 	}
 	
+	public Collection<Game> getGamesWorked(Position pos) { 
+		return this.gamesWorked == null ? null : 
+			   this.gamesWorked.entrySet().stream()
+				.filter(ent -> ent.getValue() == pos)
+				.map(ent -> ent.getKey())
+				.collect(Collectors.toList()); 
+	}
+	
+	public Collection<Game> getGamesWorked(Level l) { 
+		return this.gamesWorked == null ? null :
+			   this.gamesWorked.entrySet().stream()
+				.filter(ent -> ent.getKey().getLevel() == l)
+				.map(ent -> ent.getKey())
+				.collect(Collectors.toList()); 
+	}
+
+	public Collection<Game> getGamesWorked(Level l, Position pos) { 
+		return this.gamesWorked == null ? null :
+			   this.gamesWorked.entrySet().stream()
+				.filter(ent -> ent.getKey().getLevel() == l)
+				.filter(ent -> ent.getValue() == pos)
+				.map(ent -> ent.getKey())
+				.collect(Collectors.toList()); 
+	}
+
+	public int getNumGamesWorked() { 
+		return this.gamesWorked == null ? 0 : this.gamesWorked.size(); 
+	}
+	
+	public int getNumGamesWorked(Position pos) { 
+		return this.gamesWorked == null ? 0 : getGamesWorked(pos).size(); 
+	}
+
+	public int getNumGamesWorked(Level level) { 
+		return this.gamesWorked == null ? 0 : getGamesWorked(level).size(); 
+	}	
+	
 	public String getName() { return this.lastName + ", " + this.firstName; }
 	public String getEmail() { return this.email; }
 	public Tier getTier() { return this.tier; }
 	public Collection<Game> getGamesWorked() { return this.gamesWorked == null ? null : this.gamesWorked.keySet(); }
 	public Map<Game, Position> getAssignments() { return this.gamesWorked; }
-	public int getNumGamesWorked() { return this.gamesWorked == null ? 0 : this.gamesWorked.size(); }
-	public int getNumGamesWorked(Level level) { return this.gamesWorked == null ? 0 : (int)(this.gamesWorked.keySet().stream().filter((Game g) -> g.getLevel() == level).count()); }
 	public Collection<Evaluation> getEvalsGiven() { return this.evalsGiven; }
 	public int getNumEvalsGiven() { return this.evalsGiven == null ? 0 : this.evalsGiven.size(); }
 	public int getNumEvalsLate() { return this.evalsGiven == null ? 0 : (int)this.evalsGiven.stream().filter(e -> e.isLate()).count(); }
