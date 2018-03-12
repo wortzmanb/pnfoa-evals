@@ -39,9 +39,9 @@ public class TextRunner {
 		System.out.println(brett + ": ");
 		System.out.println("   " + brett.getNumGamesWorked() + " games worked");
 		System.out.println("       " + brett.getGamesWorked());
-		System.out.println("   " + brett.getNumEvalsReceived() + " evals received (average = " + brett.getAverageScoreReceived() + ")");
+		System.out.println("   " + brett.getNumEvalsReceived() + " evals received (average = " + brett.getAverageScoreReceived(false) + ")");
 		System.out.println("       " + brett.getEvalsReceived());
-		System.out.println("   " + brett.getNumEvalsGiven() + " evals given (average = " + brett.getAverageScoreGiven() + ")");
+		System.out.println("   " + brett.getNumEvalsGiven() + " evals given (average = " + brett.getAverageScoreGiven(false) + ")");
 		System.out.println("       " + brett.getEvalsGiven());
 		System.out.println("       " + brett.getNumEvalsLate() + " late");
 		System.out.println("         " + Arrays.toString(brett.getEvalsGiven().stream().filter(e -> e.isLate()).toArray(Evaluation[]::new)));
@@ -49,9 +49,9 @@ public class TextRunner {
 		System.out.println("       Adjustment: " + brett.getAdjustment());
 		System.out.println("  Test score: " + brett.getTestScore());
 		System.out.println("  Participation points: " + brett.getParticipationPoints());
-		System.out.println("  Eval average: " + brett.getAverageScoreReceived());
+		System.out.println("  Eval average: " + brett.getAverageScoreReceived(false));
 		System.out.println("  Late penalty: " + brett.getEvalPenalty());
-		System.out.println("  Unadj. COMPOSITE SCORE: " + brett.getCompositeScore());
+		System.out.println("  Unadj. COMPOSITE SCORE: " + brett.getCompositeScore(false));
 		
 		try {
 			CSVWriter writer = new CSVWriter(new FileWriter(DIRECTORY + "\\GeneratedRankings.csv"));
@@ -73,14 +73,14 @@ public class TextRunner {
 		List<String> values = new ArrayList<>();
 		values.add("" + official.getName());
 		values.add("" + official.getTier());
-		values.add("" + official.getAdjustedRank());
-		values.add("" + official.getAdjustedTierRank());
+		values.add("" + official.getRank(true));
+		values.add("" + official.getTierRank(true));
 		values.add("" + official.getNumGamesWorked());
 		values.add("" + official.getNumGamesWorked(Level.Varsity));
-		values.add("" + official.getAdjustedComposite());
+		values.add("" + official.getCompositeScore(true));
 		values.add("" + official.getParticipationPoints());
 		values.add("" + official.getTestScore());
-		values.add("" + official.getAverageScoreReceived());
+		values.add("" + official.getAverageScoreReceived(true));
 		values.add("" + official.getEvalPenalty());
 		
 		return values.toArray(new String[0]);

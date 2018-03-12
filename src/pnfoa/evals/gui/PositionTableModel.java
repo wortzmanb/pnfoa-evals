@@ -59,15 +59,15 @@ public class PositionTableModel extends AbstractTableModel {
 			case 0: return official.getName();
 			case 1: return official.getTier();
 			case 2: return official.getGamesWorked(Level.Varsity, Position.Referee).size();
-			case 3: return adjusted ? official.getAdjustedAverageScoreReceived(Position.Referee) : official.getAverageScoreReceived(Position.Referee);
+			case 3: return official.getAverageScoreReceived(Position.Referee, adjusted);
 			case 4: return official.getGamesWorked(Level.Varsity, Position.Umpire).size();
-			case 5: return adjusted ? official.getAdjustedAverageScoreReceived(Position.Umpire) : official.getAverageScoreReceived(Position.Umpire);
+			case 5: return official.getAverageScoreReceived(Position.Umpire, adjusted);
 			case 6: return official.getGamesWorked(Level.Varsity, Position.HeadLinesman).size();
-			case 7: return adjusted ? official.getAdjustedAverageScoreReceived(Position.HeadLinesman) : official.getAverageScoreReceived(Position.HeadLinesman);
+			case 7: return official.getAverageScoreReceived(Position.HeadLinesman, adjusted);
 			case 8: return official.getGamesWorked(Level.Varsity, Position.LineJudge).size();
-			case 9: return adjusted ? official.getAdjustedAverageScoreReceived(Position.LineJudge) : official.getAverageScoreReceived(Position.LineJudge);
+			case 9: return official.getAverageScoreReceived(Position.LineJudge, adjusted);
 			case 10: return official.getGamesWorked(Level.Varsity, Position.BackJudge).size();
-			case 11: return adjusted ? official.getAdjustedAverageScoreReceived(Position.BackJudge) : official.getAverageScoreReceived(Position.BackJudge);
+			case 11: return official.getAverageScoreReceived(Position.BackJudge, adjusted);
 			default: return null;
 		}
 	}

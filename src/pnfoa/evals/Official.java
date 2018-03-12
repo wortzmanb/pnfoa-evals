@@ -18,7 +18,6 @@ public class Official implements Comparable<Official> {
 	private int partPoints;
 	private double testScore;
 	private int rank;
-	private int adjRank;
 	
 	public static final double PART_POINTS_MAX = 100;
 	public static final double EVAL_MAX = 9;
@@ -40,7 +39,6 @@ public class Official implements Comparable<Official> {
 		this.email = email;
 		this.tier = Tier.parse(tier);
 		this.rank = -1;
-		this.adjRank = -1;
 		allOfficials.add(this);
 	}
 	
@@ -79,42 +77,23 @@ public class Official implements Comparable<Official> {
 	public void setTestScore(double score) {
 		testScore = score;
 	}
-	
-	public double getAverageScoreGiven() {
-		return getAverage(evalsGiven, false);
+
+	public double getAverageScoreGiven(boolean adjusted) {
+		return getAverage(evalsGiven, adjusted);
+	}
+
+	public double getAverageScoreReceived(boolean adjusted) {
+		return getAverage(evalsReceived, adjusted);
 	}
 	
-	public double getAdjustedAverageScoreGiven() {
-		return getAverage(evalsGiven, true); 
-	}
-	
-	public double getAverageScoreReceived() {
-		return getAverage(evalsReceived, false);
-	}
-	
-	public double getAverageScoreReceived(Position pos) {
+	public double getAverageScoreReceived(Position pos, boolean adjusted) {
 		if (getNumGamesWorked(pos) == 0) return Double.NEGATIVE_INFINITY; 
 				
 		return getAverage(evalsReceived
 				.stream()
 				.filter(e -> e.getGame().getPositionOf(e.getOfficial()) == pos)
-				.collect(Collectors.toList()), false);
+				.collect(Collectors.toList()), adjusted);
 	}
-
-	public double getAdjustedAverageScoreReceived() {
-		return getAverage(evalsReceived, true); 
-	}
-	
-	public double getAdjustedAverageScoreReceived(Position pos) {
-		if (getNumGamesWorked(pos) == 0 || evalsReceived == null) return Double.NEGATIVE_INFINITY;
-		
-		double result = getAverage(evalsReceived
-				.stream()
-				.filter(e -> e.getGame().getPositionOf(e.getOfficial()) == pos)
-				.collect(Collectors.toList()), true);
-//		System.out.println(getName() + " @ " + pos + ": " + result);
-		return result;
-	}	
 	
 	private static double getAverage(Collection<Evaluation> evals, boolean adjusted) {
 		if (evals == null || evals.size() == 0) return Double.NEGATIVE_INFINITY;
@@ -125,17 +104,7 @@ public class Official implements Comparable<Official> {
 		}
 		return (total / evals.size());
 	}
-	
-//	private double getAdjustedAverage(Collection<Evaluation> evals) {
-//		if (evals == null) return Double.NEGATIVE_INFINITY;
-//		
-//		double total = 0;
-//		for (Evaluation eval : evals) {
-//			total += (eval.getCompositeScore() + eval.getEvaluator().getAdjustment());
-//		}
-//		return (total / evals.size());
-//	}
-	
+
 	public double getEvalPenalty() {
 		if (getGamesWorked() == null) return 0.0;
 		
@@ -166,23 +135,16 @@ public class Official implements Comparable<Official> {
 	}
 	
 	public double getAdjustment() {
-		return Evaluation.getGlobalAverage() - getAverageScoreGiven();
+		return Evaluation.getGlobalAverage() - getAverageScoreGiven(false);
 	}
 	
-	public double getCompositeScore() {
-		return getCompositeScore(this.getParticipationPoints(), this.getTestScore(), this.getAverageScoreReceived());
+	public double getCompositeScore(boolean adjusted) {
+		return getCompositeScore(this.getParticipationPoints(), this.getTestScore(), this.getAverageScoreReceived(adjusted));
 	}
+
 	
-	public double getAdjustedComposite() {
-		return getCompositeScore(this.getParticipationPoints(), this.getTestScore(), this.getAdjustedAverageScoreReceived());
-	}
-	
-	public double getCompositeScore(Position pos) { 
-		return getCompositeScore(this.getParticipationPoints(), this.getTestScore(), this.getAverageScoreReceived(pos));
-	}
-	
-	public double getAdjustedComposite(Position pos) { 
-		return getCompositeScore(this.getParticipationPoints(), this.getTestScore(), this.getAdjustedAverageScoreReceived(pos));
+	public double getCompositeScore(Position pos, boolean adjusted) { 
+		return getCompositeScore(this.getParticipationPoints(), this.getTestScore(), this.getAverageScoreReceived(pos, adjusted));
 	}
 	
 	private double getCompositeScore(double part, double test, double evals) {
@@ -191,35 +153,17 @@ public class Official implements Comparable<Official> {
 			   ((evals - getEvalPenalty()) / EVAL_MAX * EVAL_WEIGHT);
 	}
 	
-	public static void calculateRanks() {
-		allOfficials.sort((Official o1, Official o2) -> Double.compare(o2.getCompositeScore(), o1.getCompositeScore()));
+	public static void calculateRanks(boolean adjusted) {
+		allOfficials.sort((Official o1, Official o2) -> Double.compare(o2.getCompositeScore(adjusted), o1.getCompositeScore(adjusted)));
 		for (int i = 0; i < allOfficials.size(); i++) {
 			allOfficials.get(i).rank = (i + 1);
 		}
 	}
-	
-	public static void calculateAdjustedRanks() {
-		allOfficials.sort((Official o1, Official o2) -> Double.compare(o2.getAdjustedComposite(), o1.getAdjustedComposite()));
-		for (int i = 0; i < allOfficials.size(); i++) {
-			allOfficials.get(i).adjRank = (i + 1);
-		}
-	}
-	
-	public int getTierRank() {
-		if (this.rank < 0) calculateRanks();
+
+	public int getTierRank(boolean adjusted) {
+		if (this.rank < 0) calculateRanks(adjusted);
 		int tierCount = 0;
 		for (int i = 0; i < this.rank; i++) {
-			if (allOfficials.get(i).getTier() == this.getTier()) {
-				tierCount++;
-			}
-		}
-		return tierCount;
-	}
-	
-	public int getAdjustedTierRank() {
-		if (this.adjRank < 0) calculateAdjustedRanks();
-		int tierCount = 0;
-		for (int i = 0; i < this.adjRank; i++) {
 			if (allOfficials.get(i).getTier() == this.getTier()) {
 				tierCount++;
 			}
@@ -276,8 +220,7 @@ public class Official implements Comparable<Official> {
 	public int getNumEvalsReceived() { return this.evalsReceived == null ? 0 : this.evalsReceived.size(); }
 	public int getParticipationPoints() { return this.partPoints; }
 	public double getTestScore() { return this.testScore; }
-	public int getRank() { if (this.rank < 0) calculateRanks(); return this.rank; }
-	public int getAdjustedRank() {if (this.adjRank < 0) calculateAdjustedRanks();  return this.adjRank; }
+	public int getRank(boolean adjusted) { if (this.rank < 0) calculateRanks(adjusted); return this.rank; }
 	
 	@Override
 	public String toString() {

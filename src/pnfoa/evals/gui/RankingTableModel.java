@@ -57,14 +57,14 @@ public class RankingTableModel extends AbstractTableModel {
 		switch (columnIndex) {
 			case 0: return official.getName();
 			case 1: return official.getTier();
-			case 2: return adjusted ? official.getAdjustedRank() : official.getRank();
-			case 3: return adjusted ? official.getAdjustedTierRank() : official.getTierRank();
+			case 2: return official.getRank(adjusted);
+			case 3: return official.getTierRank(adjusted);
 			case 4: return official.getNumGamesWorked();
 			case 5: return official.getNumGamesWorked(Level.Varsity);
-			case 6: return adjusted ? official.getAdjustedComposite() : official.getCompositeScore();
+			case 6: return official.getCompositeScore(adjusted);
 			case 7: return official.getParticipationPoints();
 			case 8: return official.getTestScore();
-			case 9: return adjusted ? official.getAdjustedAverageScoreReceived() : official.getAverageScoreReceived();
+			case 9: return official.getAverageScoreReceived(adjusted);
 			case 10: return official.getEvalPenalty();
 			default: return null;
 		}

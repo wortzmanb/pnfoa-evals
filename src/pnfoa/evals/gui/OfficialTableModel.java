@@ -52,11 +52,11 @@ public class OfficialTableModel extends AbstractTableModel {
 			case 1: return official.getTier();
 			case 2: return official.getNumGamesWorked();
 			case 3: return official.getNumEvalsGiven();
-			case 4: return official.getAverageScoreGiven();
+			case 4: return official.getAverageScoreGiven(false);
 			case 5: return official.getNumEvalsReceived();
-			case 6: return official.getAverageScoreReceived();
+			case 6: return official.getAverageScoreReceived(false);
 			case 7: return official.getNumEvalsLate();
-			case 8: return official.getCompositeScore();
+			case 8: return official.getCompositeScore(false);
 			case 9: return official.getAdjustment();
 			default: return null;
 		}
