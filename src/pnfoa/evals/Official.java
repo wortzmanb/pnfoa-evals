@@ -1,7 +1,6 @@
 package pnfoa.evals;
 
 import java.io.FileNotFoundException;
-import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -17,7 +16,8 @@ public class Official implements Comparable<Official> {
 	private Collection<Evaluation> evalsReceived;
 	private int partPoints;
 	private double testScore;
-	private int rank;
+
+	private Map<Ranking, Integer> ranks;
 	
 	public static final double PART_POINTS_MAX = 100;
 	public static final double EVAL_MAX = 9;
@@ -28,9 +28,11 @@ public class Official implements Comparable<Official> {
 	public static final double EVAL_WEIGHT = 0.7;
 	
 	private static List<Official> allOfficials;
+	private static Map<Ranking, Integer> rankCounts;
 	
 	static {
 		allOfficials = new ArrayList<>();
+		rankCounts = new EnumMap<>(Ranking.class);
 	}
 	
 	public Official(String firstName, String lastName, String email, String tier) {
@@ -38,8 +40,10 @@ public class Official implements Comparable<Official> {
 		this.lastName = lastName;
 		this.email = email;
 		this.tier = Tier.parse(tier);
-		this.rank = -1;
 		allOfficials.add(this);
+		
+		this.ranks = new EnumMap<>(Ranking.class);
+		breakOrdering();
 	}
 	
 	public Official(String firstName, String lastName) {
@@ -53,6 +57,7 @@ public class Official implements Comparable<Official> {
 		
 		gamesWorked.put(g, p);
 		addPartPoints(g.getPartPointsFor(getTier()));
+		breakOrdering();
 	}
 	
 	public void addEvalGiven(Evaluation e) {
@@ -60,6 +65,7 @@ public class Official implements Comparable<Official> {
 			evalsGiven = new HashSet<>();
 		}
 		evalsGiven.add(e);
+		breakOrdering();
 	}
 	
 	public void addEvalReceived(Evaluation e) {
@@ -67,15 +73,18 @@ public class Official implements Comparable<Official> {
 			evalsReceived = new ArrayList<>();
 		}
 		evalsReceived.add(e);
+		breakOrdering();
 	}
 	
 	public void addPartPoints(int points) {
 		partPoints += points;
 		partPoints = Math.min(partPoints, 100);
+		breakOrdering();
 	}
 	
 	public void setTestScore(double score) {
 		testScore = score;
+		breakOrdering();
 	}
 
 	public double getAverageScoreGiven(boolean adjusted) {
@@ -87,8 +96,17 @@ public class Official implements Comparable<Official> {
 	}
 	
 	public double getAverageScoreReceived(Position pos, boolean adjusted) {
-		if (getNumGamesWorked(pos) == 0) return Double.NEGATIVE_INFINITY; 
+		if (evalsReceived == null) return Double.NEGATIVE_INFINITY;
+		if (pos == Position.HL_LJ) {
+			if  (getNumGamesWorked(Position.HeadLinesman) + getNumGamesWorked(Position.LineJudge) == 0) return Double.NEGATIVE_INFINITY;
+			return getAverage(evalsReceived
+					.stream()
+					.filter(e -> e.getGame().getPositionOf(e.getOfficial()) == Position.HeadLinesman || e.getGame().getPositionOf(e.getOfficial()) == Position.LineJudge)
+					.collect(Collectors.toList()), adjusted);
+		}
 				
+
+		if (getNumGamesWorked(pos) == 0) return Double.NEGATIVE_INFINITY;
 		return getAverage(evalsReceived
 				.stream()
 				.filter(e -> e.getGame().getPositionOf(e.getOfficial()) == pos)
@@ -144,6 +162,9 @@ public class Official implements Comparable<Official> {
 
 	
 	public double getCompositeScore(Position pos, boolean adjusted) { 
+		if (pos == null) {
+			return getCompositeScore(this.getParticipationPoints(), this.getTestScore(), this.getAverageScoreReceived(adjusted));
+		}
 		return getCompositeScore(this.getParticipationPoints(), this.getTestScore(), this.getAverageScoreReceived(pos, adjusted));
 	}
 	
@@ -153,22 +174,45 @@ public class Official implements Comparable<Official> {
 			   ((evals - getEvalPenalty()) / EVAL_MAX * EVAL_WEIGHT);
 	}
 	
-	public static void calculateRanks(boolean adjusted) {
-		allOfficials.sort((Official o1, Official o2) -> Double.compare(o2.getCompositeScore(adjusted), o1.getCompositeScore(adjusted)));
-		for (int i = 0; i < allOfficials.size(); i++) {
-			allOfficials.get(i).rank = (i + 1);
-		}
+	public int getRank(boolean adjusted) {
+		return getRank(null, adjusted);
 	}
 
+	public int getRank(Position pos, boolean adjusted) {
+		if (!ranks.containsKey(Ranking.getValue(pos, adjusted))) {
+			sortOfficials(pos, adjusted);
+		}
+		return ranks.get(Ranking.getValue(pos, adjusted));
+	}
+	
 	public int getTierRank(boolean adjusted) {
-		if (this.rank < 0) calculateRanks(adjusted);
-		int tierCount = 0;
-		for (int i = 0; i < this.rank; i++) {
-			if (allOfficials.get(i).getTier() == this.getTier()) {
-				tierCount++;
+		return getTierRank(null, adjusted);
+	}
+	
+	public int getTierRank(Position pos, boolean adjusted) {
+		if (!ranks.containsKey(Ranking.getValue(pos, adjusted))) {
+			sortOfficials(pos, adjusted);
+		}		
+		List<Official> tier = new ArrayList<>(allOfficials);
+		tier.removeIf((Official o) -> o.getTier() != this.getTier());
+		return 1 + tier.indexOf(this);
+	}
+	
+	private void sortOfficials(Position pos, boolean adjusted) {
+		allOfficials.sort((Official o1, Official o2) -> Double.compare(o2.getCompositeScore(pos, adjusted), o1.getCompositeScore(pos, adjusted)));
+		
+		Ranking r = Ranking.getValue(pos, adjusted);
+		int count = 0;
+		for (int i = 0; i < allOfficials.size(); i++) {
+			Official o = allOfficials.get(i);
+			if (o.getCompositeScore(pos, adjusted) == Double.NEGATIVE_INFINITY) {
+				o.ranks.put(r, -1);
+			} else {
+				o.ranks.put(r, i + 1);
+				count++;
 			}
 		}
-		return tierCount;
+		rankCounts.put(r, count);
 	}
 	
 	public Collection<Game> getGamesWorked(Position pos) { 
@@ -208,6 +252,10 @@ public class Official implements Comparable<Official> {
 		return this.gamesWorked == null ? 0 : getGamesWorked(level).size(); 
 	}	
 	
+	public int getNumGamesWorked(Level level, Position pos) {
+		return this.gamesWorked == null ? 0 : getGamesWorked(level, pos).size();
+	}
+	
 	public String getName() { return this.lastName + ", " + this.firstName; }
 	public String getEmail() { return this.email; }
 	public Tier getTier() { return this.tier; }
@@ -220,7 +268,9 @@ public class Official implements Comparable<Official> {
 	public int getNumEvalsReceived() { return this.evalsReceived == null ? 0 : this.evalsReceived.size(); }
 	public int getParticipationPoints() { return this.partPoints; }
 	public double getTestScore() { return this.testScore; }
-	public int getRank(boolean adjusted) { if (this.rank < 0) calculateRanks(adjusted); return this.rank; }
+	
+	public static int getNumRanked(boolean adjusted) { return rankCounts.get(Ranking.getValue(null, adjusted)); }
+	public static int getNumRanked(Position p, boolean adjusted) { return rankCounts.get(Ranking.getValue(p, adjusted)); }
 	
 	@Override
 	public String toString() {
@@ -266,5 +316,33 @@ public class Official implements Comparable<Official> {
 		
 		System.out.println(officials.size() + " officials read");
 		return officials;
+	}
+	
+	private static enum Ranking {
+		Overall,
+		Referee,
+		Umpire,
+		HeadLinesman,
+		LineJudge,
+		BackJudge,
+		HL_LJ,	
+		AdjustedOverall,
+		AdjustedReferee,
+		AdjustedUmpire,
+		AdjustedHeadLinesman,
+		AdjustedLineJudge,
+		AdjustedBackJudge,
+		AdjustedHL_LJ;
+		
+		public static Ranking getValue(Position p, boolean adjusted) {
+			String pos = p == null ? "Overall" : p.toString();
+			String adj = adjusted ? "Adjusted" : "";
+			return Ranking.valueOf(adj + pos);
+		}
+	
+	}
+
+	private void breakOrdering() {
+		this.ranks.clear();
 	}
 }

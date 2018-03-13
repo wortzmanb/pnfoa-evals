@@ -16,7 +16,12 @@ public class PositionTableModel extends AbstractTableModel {
 	 */
 	private static final long serialVersionUID = 3101636009343426590L;
 
-	private String[] columnNames = {"Name", "Tier", "R Games Worked", "R Average", "U Games Worked", "U Average", "HL Games Worked", "HL Average", "LJ Games Worked", "LJ Average", "BJ Games Worked", "BJ Average"};
+	private String[] columnNames = {"Name", "Tier", 
+									"R Games Worked", "R Average", "R Rank", 
+									"U Games Worked", "U Average", "U Rank", 
+									"HL Games Worked", "HL Average", "HL Rank", 
+									"LJ Games Worked", "LJ Average", "LJ Rank", 
+									"BJ Games Worked", "BJ Average", "BJ Rank"};
 	private List<Official> officials;
 	private int rowCount;
 	private boolean adjusted;
@@ -59,15 +64,20 @@ public class PositionTableModel extends AbstractTableModel {
 			case 0: return official.getName();
 			case 1: return official.getTier();
 			case 2: return official.getGamesWorked(Level.Varsity, Position.Referee).size();
-			case 3: return official.getAverageScoreReceived(Position.Referee, adjusted);
-			case 4: return official.getGamesWorked(Level.Varsity, Position.Umpire).size();
-			case 5: return official.getAverageScoreReceived(Position.Umpire, adjusted);
-			case 6: return official.getGamesWorked(Level.Varsity, Position.HeadLinesman).size();
-			case 7: return official.getAverageScoreReceived(Position.HeadLinesman, adjusted);
-			case 8: return official.getGamesWorked(Level.Varsity, Position.LineJudge).size();
-			case 9: return official.getAverageScoreReceived(Position.LineJudge, adjusted);
-			case 10: return official.getGamesWorked(Level.Varsity, Position.BackJudge).size();
-			case 11: return official.getAverageScoreReceived(Position.BackJudge, adjusted);
+			case 3: return official.getCompositeScore(Position.Referee, adjusted);
+			case 4: return official.getRank(Position.Referee, adjusted);
+			case 5: return official.getGamesWorked(Level.Varsity, Position.Umpire).size();
+			case 6: return official.getCompositeScore(Position.Umpire, adjusted);
+			case 7: return official.getRank(Position.Umpire, adjusted);
+			case 8: return official.getGamesWorked(Level.Varsity, Position.HeadLinesman).size();
+			case 9: return official.getCompositeScore(Position.HeadLinesman, adjusted);
+			case 10: return official.getRank(Position.HeadLinesman, adjusted);
+			case 11: return official.getGamesWorked(Level.Varsity, Position.LineJudge).size();
+			case 12: return official.getCompositeScore(Position.LineJudge, adjusted);
+			case 13: return official.getRank(Position.LineJudge, adjusted);
+			case 14: return official.getGamesWorked(Level.Varsity, Position.BackJudge).size();
+			case 15: return official.getCompositeScore(Position.BackJudge, adjusted);
+			case 16: return official.getRank(Position.BackJudge, adjusted);
 			default: return null;
 		}
 	}

@@ -6,6 +6,7 @@ public enum Position {
 	HeadLinesman,
 	LineJudge,
 	BackJudge,
+	HL_LJ,
 	Chains,
 	Evaluator,
 	Other;

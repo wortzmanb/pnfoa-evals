@@ -15,7 +15,7 @@ public class GuiRunner {
 	private Map<Integer, Game> games;
 	private Map<Integer, Evaluation> evals;
 	
-	public static final String DIRECTORY = "C:\\Users\\brettwo\\OneDrive\\PNFOA Board\\2017 - Evaluations\\Evals App\\Move-Up";
+	public static final String DIRECTORY = "C:\\Users\\brettwo\\OneDrive\\PNFOA Board\\2017-18 - Evaluations\\Evals App\\Move-Up";
 
 	public static void main(String[] args) {
 		Scanner kb = new Scanner(System.in);
@@ -107,6 +107,7 @@ public class GuiRunner {
 		tabbedPane.setTabLayoutPolicy(JTabbedPane.SCROLL_TAB_LAYOUT);
 		
 		tabbedPane.addTab("Rankings", makePanel("Rankings"));
+		tabbedPane.addTab("Position Rankings", makePanel("Positions"));
 		tabbedPane.addTab("Officials", makePanel("Officials"));
 		tabbedPane.addTab("Games", makePanel("Games"));
 		tabbedPane.addTab("Evaluations", makePanel("Evaluations"));
@@ -137,6 +138,8 @@ public class GuiRunner {
 			table = new JTable(new GameTableModel(new ArrayList<Game>(games.values())));
 		} else if (panelName.equals("Rankings")) {
 			table = new JTable(new RankingTableModel(new ArrayList<Official>(officials.values()), true));
+		} else if (panelName.equals("Positions")) {
+			table = new JTable(new PositionTableModel(new ArrayList<Official>(officials.values()), true));
 		} else {
 			throw new IllegalArgumentException("Invalid tab name");
 		}
@@ -146,7 +149,13 @@ public class GuiRunner {
 		initColumnSizes(table);
 
 		JScrollPane scrollPane = new JScrollPane(table);
-		return scrollPane;
+		if (!panelName.equals("Positions")) return scrollPane;
+		
+		JPanel panel = new JPanel(new BorderLayout());
+		panel.add(scrollPane, BorderLayout.CENTER);
+		JComboBox<Position> box = new JComboBox<Position>(Position.values());
+		panel.add(box, BorderLayout.NORTH);
+		return panel;
 	}	
 	
     /*

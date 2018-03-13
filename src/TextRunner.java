@@ -9,7 +9,7 @@ import pnfoa.util.CSVParser;
 import com.opencsv.*;
 
 public class TextRunner {
-	public static final String DIRECTORY = "C:\\Users\\brettwo\\OneDrive\\PNFOA Board\\2017 - Evaluations\\Evals App\\Move-Up";
+	public static final String DIRECTORY = "C:\\Users\\brettwo\\OneDrive\\PNFOA Board\\2017-18 - Evaluations\\Evals App\\Move-Up";
 	
 	public static void main(String[] args) {
 		Scanner kb = new Scanner(System.in);
@@ -52,6 +52,15 @@ public class TextRunner {
 		System.out.println("  Eval average: " + brett.getAverageScoreReceived(false));
 		System.out.println("  Late penalty: " + brett.getEvalPenalty());
 		System.out.println("  Unadj. COMPOSITE SCORE: " + brett.getCompositeScore(false));
+		System.out.println();
+		System.out.println("  RANKINGS:");
+		System.out.println("    Overall: " + brett.getRank(true) + "/" + Official.getNumRanked(true));
+		System.out.println("    Referee: " + brett.getRank(Position.Referee, true) + "/" + Official.getNumRanked(Position.Referee, true));
+		System.out.println("    Umpire: " + brett.getRank(Position.Umpire, true) + "/" + Official.getNumRanked(Position.Umpire, true));
+		System.out.println("    Head Linesman: " + brett.getRank(Position.HeadLinesman, true) + "/" + Official.getNumRanked(Position.HeadLinesman, true));
+		System.out.println("    Line Judge: " + brett.getRank(Position.LineJudge, true) + "/" + Official.getNumRanked(Position.LineJudge, true));
+		System.out.println("    Back Judge: " + brett.getRank(Position.BackJudge, true) + "/" + Official.getNumRanked(Position.BackJudge, true));
+		System.out.println("    HL/LJ: " + brett.getRank(Position.HL_LJ, true) + "/" + Official.getNumRanked(Position.HL_LJ, true));
 		
 		try {
 			CSVWriter writer = new CSVWriter(new FileWriter(DIRECTORY + "\\GeneratedRankings.csv"));
