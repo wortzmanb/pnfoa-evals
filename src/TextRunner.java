@@ -49,9 +49,9 @@ public class TextRunner {
 		System.out.println("       Adjustment: " + brett.getAdjustment());
 		System.out.println("  Test score: " + brett.getTestScore());
 		System.out.println("  Participation points: " + brett.getParticipationPoints());
-		System.out.println("  Eval average: " + brett.getAverageScoreReceived(false));
+		System.out.println("  Eval average: " + brett.getAverageScoreReceived(true));
 		System.out.println("  Late penalty: " + brett.getEvalPenalty());
-		System.out.println("  Unadj. COMPOSITE SCORE: " + brett.getCompositeScore(false));
+		System.out.println("  Unadj. COMPOSITE SCORE: " + brett.getCompositeScore(true));
 		System.out.println();
 		System.out.println("  RANKINGS:");
 		System.out.println("    Overall: " + brett.getRank(true) + "/" + Official.getNumRanked(true));
@@ -62,11 +62,26 @@ public class TextRunner {
 		System.out.println("    Back Judge: " + brett.getRank(Position.BackJudge, true) + "/" + Official.getNumRanked(Position.BackJudge, true));
 		System.out.println("    HL/LJ: " + brett.getRank(Position.HL_LJ, true) + "/" + Official.getNumRanked(Position.HL_LJ, true));
 		
+		// Export full rankings
 		try {
 			CSVWriter writer = new CSVWriter(new FileWriter(DIRECTORY + "\\GeneratedRankings.csv"));
 			writer.writeNext(getCsvHeaders());
 			for (Official o : officials.values()) {
 				writer.writeNext(getCsvOutput(o));
+			}
+			
+			writer.close();
+		} catch (IOException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+		
+		// Export mail merge data
+		try {
+			CSVWriter writer = new CSVWriter(new FileWriter(DIRECTORY + "\\MailMergeData.csv"));
+			writer.writeNext(getMailMergeHeaders());
+			for (Official o : officials.values()) {
+				writer.writeNext(getMailMergeOutput(o));
 			}
 			
 			writer.close();
@@ -97,6 +112,27 @@ public class TextRunner {
 	
 	private static String[] getCsvHeaders() {
 		String[] headers = {"Name", "Tier", "Rank", "Tier Rank", "Games Worked", "Varsity Games Worked", "Composite", "Part. Points", "Test Score", "Eval. Avg.", "Penalty"}; 
+		return headers;
+	}
+	
+	private static String[] getMailMergeOutput(Official official) {
+		List<String> values = new ArrayList<>();
+		values.add("" + official.getName());
+		values.add("" + official.getEmail());
+		values.add("" + official.getTier());
+		values.add("" + official.getRank(true));
+		values.add("" + official.getRank(Position.Referee, true));
+		values.add("" + official.getRank(Position.Umpire, true));
+		values.add("" + official.getRank(Position.HeadLinesman, true));
+		values.add("" + official.getRank(Position.LineJudge, true));
+		values.add("" + official.getRank(Position.HL_LJ, true));
+		values.add("" + official.getRank(Position.BackJudge, true));
+		
+		return values.toArray(new String[0]);
+	}
+	
+	private static String[] getMailMergeHeaders() {
+		String[] headers = {"Name", "E-mail", "Tier", "Rank", "R Rank", "U Rank", "HL Rank", "LJ Rank", "HL/LJ Rank", "BJ Rank"}; 
 		return headers;
 	}
 	
