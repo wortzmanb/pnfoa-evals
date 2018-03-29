@@ -27,6 +27,8 @@ public class Official implements Comparable<Official> {
 	public static final double TEST_WEIGHT = 0.2;
 	public static final double EVAL_WEIGHT = 0.7;
 	
+	public static final int MIN_GAMES_TO_RANK = 3;
+	
 	private static List<Official> allOfficials;
 	private static Map<Ranking, Integer> rankCounts;
 	
@@ -202,17 +204,19 @@ public class Official implements Comparable<Official> {
 		allOfficials.sort((Official o1, Official o2) -> Double.compare(o2.getCompositeScore(pos, adjusted), o1.getCompositeScore(pos, adjusted)));
 		
 		Ranking r = Ranking.getValue(pos, adjusted);
-		int count = 0;
+		int count = 1;
 		for (int i = 0; i < allOfficials.size(); i++) {
 			Official o = allOfficials.get(i);
-			if (o.getCompositeScore(pos, adjusted) == Double.NEGATIVE_INFINITY) {
-				o.ranks.put(r, -1);
+			if (o.getCompositeScore(pos, adjusted) == Double.NEGATIVE_INFINITY ||
+				(pos == null && o.getNumGamesWorked(Level.Varsity) < MIN_GAMES_TO_RANK) ||
+				(pos != null && o.getNumGamesWorked(Level.Varsity, pos) < MIN_GAMES_TO_RANK)) {
+				o.ranks.put(r, Integer.MAX_VALUE);
 			} else {
-				o.ranks.put(r, i + 1);
+				o.ranks.put(r, count);
 				count++;
 			}
 		}
-		rankCounts.put(r, count);
+		rankCounts.put(r, count - 1);
 	}
 	
 	public Collection<Game> getGamesWorked(Position pos) { 
