@@ -208,8 +208,9 @@ public class Official implements Comparable<Official> {
 		for (int i = 0; i < allOfficials.size(); i++) {
 			Official o = allOfficials.get(i);
 			if (o.getCompositeScore(pos, adjusted) == Double.NEGATIVE_INFINITY ||
+				(pos == Position.HL_LJ && (o.getNumGamesWorked(Level.Varsity, Position.HeadLinesman) + o.getNumGamesWorked(Level.Varsity, Position.LineJudge)) < MIN_GAMES_TO_RANK) ||
 				(pos == null && o.getNumGamesWorked(Level.Varsity) < MIN_GAMES_TO_RANK) ||
-				(pos != null && o.getNumGamesWorked(Level.Varsity, pos) < MIN_GAMES_TO_RANK)) {
+				(pos != null && pos != Position.HL_LJ && o.getNumGamesWorked(Level.Varsity, pos) < MIN_GAMES_TO_RANK)) {
 				o.ranks.put(r, Integer.MAX_VALUE);
 			} else {
 				o.ranks.put(r, count);
