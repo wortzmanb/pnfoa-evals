@@ -1,6 +1,4 @@
-import java.io.FileNotFoundException;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
 import java.util.*;
 
 
@@ -9,7 +7,7 @@ import pnfoa.util.CSVParser;
 import com.opencsv.*;
 
 public class TextRunner {
-	public static final String DIRECTORY = "C:\\Users\\brettwo\\OneDrive\\PNFOA Board\\2017-18 - Evaluations\\Evals App\\Move-Up";
+	public static final String DIRECTORY = "D:\\OneDrive\\PNFOA Board\\2017-18 - Evaluations\\Evals App\\Move-Up";
 	
 	public static void main(String[] args) {
 		Scanner kb = new Scanner(System.in);
@@ -32,8 +30,6 @@ public class TextRunner {
 		
 		readPartPoints(directoryName + "\\Participation.csv", officials);
 		readTestScores(directoryName + "\\Test.csv", officials);
-		
-		kb.close();
 		
 		Official brett = officials.get("Wortzman, Brett");
 		System.out.println(brett + ": ");
@@ -62,36 +58,86 @@ public class TextRunner {
 		System.out.println("    Back Judge: " + brett.getRank(Position.BackJudge, true) + "/" + Official.getNumRanked(Position.BackJudge, true));
 		System.out.println("    HL/LJ: " + brett.getRank(Position.HL_LJ, true) + "/" + Official.getNumRanked(Position.HL_LJ, true));
 		
-		// Export full rankings
-		try {
-			CSVWriter writer = new CSVWriter(new FileWriter(DIRECTORY + "\\GeneratedRankings.csv"));
-			writer.writeNext(getCsvHeaders());
-			for (Official o : officials.values()) {
-				writer.writeNext(getCsvOutput(o));
+		// Export composite evals
+		System.out.print("Export composite evaluations? ");
+		if (kb.next().toLowerCase().startsWith("y")) {
+			try {
+				CSVWriter writer = new CSVWriter(new FileWriter(DIRECTORY + "\\CompositeEvals.csv"));
+				writer.writeNext(getEvalsCsvHeaders());
+				for (Evaluation e : evals.values()) {
+					writer.writeNext(getEvalsCsvOutput(e));
+				}
+
+				writer.close();
+			} catch (IOException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
 			}
-			
-			writer.close();
-		} catch (IOException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
+		}
+		
+		// Export full rankings
+		System.out.print("Export full rankings? ");
+		if (kb.next().toLowerCase().startsWith("y")) {
+			try {
+				CSVWriter writer = new CSVWriter(new FileWriter(DIRECTORY + "\\GeneratedRankings.csv"));
+				writer.writeNext(getCsvHeaders());
+				for (Official o : officials.values()) {
+					writer.writeNext(getCsvOutput(o));
+				}
+
+				writer.close();
+			} catch (IOException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
 		}
 		
 		// Export mail merge data
-		try {
-			CSVWriter writer = new CSVWriter(new FileWriter(DIRECTORY + "\\MailMergeData.csv"));
-			writer.writeNext(getMailMergeHeaders());
-			for (Official o : officials.values()) {
-				writer.writeNext(getMailMergeOutput(o));
+		System.out.print("Export mail merge data? ");
+		if (kb.next().toLowerCase().startsWith("y")) {		
+			try {
+				CSVWriter writer = new CSVWriter(new FileWriter(DIRECTORY + "\\MailMergeData.csv"));
+				writer.writeNext(getMailMergeHeaders());
+				for (Official o : officials.values()) {
+					writer.writeNext(getMailMergeOutput(o));
+				}
+
+				writer.close();
+			} catch (IOException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
 			}
-			
-			writer.close();
-		} catch (IOException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
 		}
-		
+
+		kb.close();
     }
 	
+	private static String[] getEvalsCsvOutput(Evaluation eval) {
+		List<String> values = new ArrayList<>();
+		values.add("" + eval.getId());
+		values.add("" + eval.getDate());
+		values.add("" + eval.getGame());
+		values.add("" + eval.getEvaluator());
+		values.add("" + eval.getOfficial());
+		values.add("" + eval.getCompositeScore());
+		for (String crit : Evaluation.critWeights.keySet()) {
+			values.add("" + eval.getScores().get(crit));
+			values.add(eval.getComments().get(crit));
+		}
+		values.add(eval.getComments().get("Summary"));		
+		return values.toArray(new String[0]);
+	}
+	
+	private static String[] getEvalsCsvHeaders() {
+		List<String> headers = new ArrayList<>();
+		headers.addAll(Arrays.asList(new String[]{"Id", "Date", "Game", "Evaluator", "Official", "Composite Score"}));
+		for (String crit : Evaluation.critWeights.keySet()) {
+			headers.add(crit + " Score");
+			headers.add(crit + " Comment");
+		}
+		headers.add("Summary Comment");
+		return headers.toArray(new String[0]);
+	}	
 	
 	private static String[] getCsvOutput(Official official) {
 		List<String> values = new ArrayList<>();

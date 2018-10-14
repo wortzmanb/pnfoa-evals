@@ -10,7 +10,7 @@ import java.time.temporal.*;
 import pnfoa.util.*;
 
 public class Evaluation implements Comparable<Evaluation> {
-	private static Map<String, Double> critWeights;
+	public static final Map<String, Double> critWeights;
 	private static final LocalDateTime FIRST_DUE = LocalDateTime.of(2017, 9, 13, 23, 59, 59);
 	
 	private static Collection<Evaluation> allEvals;
