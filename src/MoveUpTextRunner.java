@@ -6,7 +6,7 @@ import pnfoa.evals.*;
 import pnfoa.util.CSVParser;
 import com.opencsv.*;
 
-public class TextRunner {
+public class MoveUpTextRunner {
 	public static final String DIRECTORY = "D:\\OneDrive\\PNFOA Board\\2017-18 - Evaluations\\Evals App\\Move-Up";
 	
 	public static void main(String[] args) {

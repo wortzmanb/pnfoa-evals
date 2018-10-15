@@ -15,7 +15,7 @@ public class GuiRunner {
 	private Map<Integer, Game> games;
 	private Map<Integer, Evaluation> evals;
 	
-	public static final String DIRECTORY = "C:\\Users\\brettwo\\OneDrive\\PNFOA Board\\2017-18 - Evaluations\\Evals App\\Move-Up";
+	public static final String DIRECTORY = "D:\\OneDrive\\PNFOA Board\\2017-18 - Evaluations\\Evals App\\Move-Up";
 
 	public static void main(String[] args) {
 		Scanner kb = new Scanner(System.in);
