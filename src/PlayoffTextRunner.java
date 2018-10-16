@@ -1,4 +1,5 @@
 import java.io.*;
+import java.time.LocalDateTime;
 import java.util.*;
 
 import com.opencsv.CSVWriter;
@@ -7,7 +8,7 @@ import pnfoa.evals.*;
 import pnfoa.util.*;
 
 public class PlayoffTextRunner {
-	public static final String DIRECTORY = "D:\\OneDrive\\PNFOA Board\\2017-18 - Evaluations\\Evals App\\Move-Up";
+	public static final String DIRECTORY = "D:\\OneDrive\\PNFOA Board\\2017-18 - Evaluations\\2018 Playoff Meeting";
 	
 	public static void main(String[] args) {
 		Scanner kb = new Scanner(System.in);
@@ -21,166 +22,120 @@ public class PlayoffTextRunner {
 		Map<String, Official> officials = Official.readOfficials(directoryName + "\\Officials.csv");
 		
 //		System.out.print("Assignments file? ");
-//		String assFileName = kb.nextLine();		
+//		String assFileName = kb.nextLine();
+		Map<Integer, Game> oldGames = Game.readGames(directoryName + "\\Prev Assignments.csv", officials);
 		Map<Integer, Game> games = Game.readGames(directoryName + "\\Assignments.csv", officials);
 		
 //		System.out.print("Evaluations file? ");
 //		String evalFileName = kb.nextLine();
-		Map<Integer, Evaluation> evals = Evaluation.readEvals(directoryName + "\\Evaluations.csv", officials, games);
+		EvaluationList oldEvals = EvaluationList.readEvals(directoryName + "\\Prev Evaluations.csv", officials, oldGames);
+		EvaluationList evals = EvaluationList.readEvals(directoryName + "\\Evaluations.csv", officials, games);
 		
 		readPartPoints(directoryName + "\\Participation.csv", officials);
-		readTestScores(directoryName + "\\Test.csv", officials);
+//		readTestScores(directoryName + "\\Test.csv", officials);
+		
+		oldGames.entrySet().removeIf((Map.Entry<Integer, Game> e) -> e.getValue().getDate().isBefore(LocalDateTime.of(2017, 10, 19, 0, 0, 0)));
+		oldEvals.removeIf((Evaluation e) -> e.getGame().getDate().isBefore(LocalDateTime.of(2017,  10, 19, 0, 0, 0)));
 		
 		Official brett = officials.get("Wortzman, Brett");
 		System.out.println(brett + ": ");
-		System.out.println("   " + brett.getNumGamesWorked() + " games worked");
-		System.out.println("       " + brett.getGamesWorked());
-		System.out.println("   " + brett.getNumEvalsReceived() + " evals received (average = " + brett.getAverageScoreReceived(false) + ")");
-		System.out.println("       " + brett.getEvalsReceived());
-		System.out.println("   " + brett.getNumEvalsGiven() + " evals given (average = " + brett.getAverageScoreGiven(false) + ")");
-		System.out.println("       " + brett.getEvalsGiven());
-		System.out.println("       " + brett.getNumEvalsLate() + " late");
-		System.out.println("         " + Arrays.toString(brett.getEvalsGiven().stream().filter(e -> e.isLate()).toArray(Evaluation[]::new)));
-		System.out.println("       Global Average: " + Evaluation.getGlobalAverage());
-		System.out.println("       Adjustment: " + brett.getAdjustment());
 		System.out.println("  Test score: " + brett.getTestScore());
 		System.out.println("  Participation points: " + brett.getParticipationPoints());
-		System.out.println("  Eval average: " + brett.getAverageScoreReceived(true));
-		System.out.println("  Late penalty: " + brett.getEvalPenalty());
-		System.out.println("  Unadj. COMPOSITE SCORE: " + brett.getCompositeScore(true));
-		System.out.println();
-		System.out.println("  RANKINGS:");
-		System.out.println("    Overall: " + brett.getRank(true) + "/" + Official.getNumRanked(true));
-		System.out.println("    Referee: " + brett.getRank(Position.Referee, true) + "/" + Official.getNumRanked(Position.Referee, true));
-		System.out.println("    Umpire: " + brett.getRank(Position.Umpire, true) + "/" + Official.getNumRanked(Position.Umpire, true));
-		System.out.println("    Head Linesman: " + brett.getRank(Position.HeadLinesman, true) + "/" + Official.getNumRanked(Position.HeadLinesman, true));
-		System.out.println("    Line Judge: " + brett.getRank(Position.LineJudge, true) + "/" + Official.getNumRanked(Position.LineJudge, true));
-		System.out.println("    Back Judge: " + brett.getRank(Position.BackJudge, true) + "/" + Official.getNumRanked(Position.BackJudge, true));
-		System.out.println("    HL/LJ: " + brett.getRank(Position.HL_LJ, true) + "/" + Official.getNumRanked(Position.HL_LJ, true));
-		
-		// Export composite evals
-		System.out.print("Export composite evaluations? ");
-		if (kb.next().toLowerCase().startsWith("y")) {
-			try {
-				CSVWriter writer = new CSVWriter(new FileWriter(DIRECTORY + "\\CompositeEvals.csv"));
-				writer.writeNext(getEvalsCsvHeaders());
-				for (Evaluation e : evals.values()) {
-					writer.writeNext(getEvalsCsvOutput(e));
-				}
+		System.out.println("  Current Adjustment: " + evals.getAdjustmentFor(brett));
+		System.out.println("  Prev Adjustment: " + oldEvals.getAdjustmentFor(brett));
+		System.out.println("  Current Positional Scores: ");
+		System.out.printf("    R:  %f (%d games)\n", evals.getAverageReceivedBy(brett, Position.Referee, true), getNumVarsityGamesFor(brett, Position.Referee, games.values()));
+		System.out.printf("    U:  %f (%d games)\n", evals.getAverageReceivedBy(brett, Position.Umpire, true), getNumVarsityGamesFor(brett, Position.Umpire, games.values()));
+		System.out.printf("    HL: %f (%d games)\n", evals.getAverageReceivedBy(brett, Position.HeadLinesman, true), getNumVarsityGamesFor(brett, Position.HeadLinesman, games.values()));
+		System.out.printf("    LJ: %f (%d games)\n", evals.getAverageReceivedBy(brett, Position.LineJudge, true), getNumVarsityGamesFor(brett, Position.LineJudge, games.values()));
+		System.out.printf("    BJ: %f (%d games)\n", evals.getAverageReceivedBy(brett, Position.BackJudge, true), getNumVarsityGamesFor(brett, Position.BackJudge, games.values()));
+		System.out.println("  Prev Positional Scores: ");
+		System.out.printf("    R:  %f (%d games)\n", oldEvals.getAverageReceivedBy(brett, Position.Referee, true), getNumVarsityGamesFor(brett, Position.Referee, oldGames.values()));
+		System.out.printf("    U:  %f (%d games)\n", oldEvals.getAverageReceivedBy(brett, Position.Umpire, true), getNumVarsityGamesFor(brett, Position.Umpire, oldGames.values()));
+		System.out.printf("    HL: %f (%d games)\n", oldEvals.getAverageReceivedBy(brett, Position.HeadLinesman, true), getNumVarsityGamesFor(brett, Position.HeadLinesman, oldGames.values()));
+		System.out.printf("    LJ: %f (%d games)\n", oldEvals.getAverageReceivedBy(brett, Position.LineJudge, true), getNumVarsityGamesFor(brett, Position.LineJudge, oldGames.values()));
+		System.out.printf("    BJ: %f (%d games)\n", oldEvals.getAverageReceivedBy(brett, Position.BackJudge, true), getNumVarsityGamesFor(brett, Position.BackJudge, oldGames.values()));
+		System.out.println("  COMPOSITE SCORES: ");
+		System.out.printf("    R: %f (%d games)\n", getCompositeScore(brett, Position.Referee, true, evals, oldEvals), getNumVarsityGamesFor(brett, Position.Referee, games.values()));
+		System.out.printf("    U: %f (%d games)\n", getCompositeScore(brett, Position.Umpire, true, evals, oldEvals), getNumVarsityGamesFor(brett, Position.Umpire, games.values()));
+		System.out.printf("    HL: %f (%d games)\n", getCompositeScore(brett, Position.HeadLinesman, true, evals, oldEvals), getNumVarsityGamesFor(brett, Position.HeadLinesman, games.values()));
+		System.out.printf("    LJ: %f (%d games)\n", getCompositeScore(brett, Position.LineJudge, true, evals, oldEvals), getNumVarsityGamesFor(brett, Position.LineJudge, games.values()));
+		System.out.printf("    BJ: %f (%d games)\n", getCompositeScore(brett, Position.BackJudge, true, evals, oldEvals), getNumVarsityGamesFor(brett, Position.BackJudge, games.values()));
 
-				writer.close();
-			} catch (IOException e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
-			}
-		}
+		System.out.println();
 		
 		// Export full rankings
 		System.out.print("Export full rankings? ");
 		if (kb.next().toLowerCase().startsWith("y")) {
 			try {
-				CSVWriter writer = new CSVWriter(new FileWriter(DIRECTORY + "\\GeneratedRankings.csv"));
-				writer.writeNext(getCsvHeaders());
+				CSVWriter refWriter = new CSVWriter(new FileWriter(DIRECTORY + "\\RefereeRankings.csv"));
+				CSVWriter umpWriter = new CSVWriter(new FileWriter(DIRECTORY + "\\UmpireRankings.csv"));
+				CSVWriter hlWriter = new CSVWriter(new FileWriter(DIRECTORY + "\\HeadLinesRankings.csv"));
+				CSVWriter ljWriter = new CSVWriter(new FileWriter(DIRECTORY + "\\LineJudgeRankings.csv"));
+				CSVWriter bjWriter = new CSVWriter(new FileWriter(DIRECTORY + "\\BackJudgeRankings.csv"));
+				refWriter.writeNext(getCsvHeaders());
+				umpWriter.writeNext(getCsvHeaders());
+				hlWriter.writeNext(getCsvHeaders());
+				ljWriter.writeNext(getCsvHeaders());
+				bjWriter.writeNext(getCsvHeaders());
 				for (Official o : officials.values()) {
-					writer.writeNext(getCsvOutput(o));
+					refWriter.writeNext(getCsvOutput(o, Position.Referee, games.values(), oldEvals, evals));
+					umpWriter.writeNext(getCsvOutput(o, Position.Umpire, games.values(), oldEvals, evals));
+					hlWriter.writeNext(getCsvOutput(o, Position.HeadLinesman, games.values(), oldEvals, evals));
+					ljWriter.writeNext(getCsvOutput(o, Position.LineJudge, games.values(), oldEvals, evals));
+					bjWriter.writeNext(getCsvOutput(o, Position.BackJudge, games.values(), oldEvals, evals));
 				}
 
-				writer.close();
+				refWriter.close();
+				umpWriter.close();
+				hlWriter.close();
+				ljWriter.close();
+				bjWriter.close();
 			} catch (IOException e1) {
 				// TODO Auto-generated catch block
 				e1.printStackTrace();
 			}
-		}
-		
-		// Export mail merge data
-		System.out.print("Export mail merge data? ");
-		if (kb.next().toLowerCase().startsWith("y")) {		
-			try {
-				CSVWriter writer = new CSVWriter(new FileWriter(DIRECTORY + "\\MailMergeData.csv"));
-				writer.writeNext(getMailMergeHeaders());
-				for (Official o : officials.values()) {
-					writer.writeNext(getMailMergeOutput(o));
-				}
-
-				writer.close();
-			} catch (IOException e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
-			}
-		}
+		}		
 
 		kb.close();
     }
 	
-	private static String[] getEvalsCsvOutput(Evaluation eval) {
-		List<String> values = new ArrayList<>();
-		values.add("" + eval.getId());
-		values.add("" + eval.getDate());
-		values.add("" + eval.getGame());
-		values.add("" + eval.getEvaluator());
-		values.add("" + eval.getOfficial());
-		values.add("" + eval.getCompositeScore());
-		for (String crit : Evaluation.critWeights.keySet()) {
-			values.add("" + eval.getScores().get(crit));
-			values.add(eval.getComments().get(crit));
-		}
-		values.add(eval.getComments().get("Summary"));		
-		return values.toArray(new String[0]);
+	private static int getNumVarsityGamesFor(Official o, Position p, Collection<Game> games) {
+		return (int)(games.stream().filter((Game g) -> g.getPositionOf(o) == p && g.getLevel() == Level.Varsity).count());
 	}
 	
-	private static String[] getEvalsCsvHeaders() {
-		List<String> headers = new ArrayList<>();
-		headers.addAll(Arrays.asList(new String[]{"Id", "Date", "Game", "Evaluator", "Official", "Composite Score"}));
-		for (String crit : Evaluation.critWeights.keySet()) {
-			headers.add(crit + " Score");
-			headers.add(crit + " Comment");
-		}
-		headers.add("Summary Comment");
-		return headers.toArray(new String[0]);
-	}	
-	
-	private static String[] getCsvOutput(Official official) {
-		List<String> values = new ArrayList<>();
-		values.add("" + official.getName());
-		values.add("" + official.getTier());
-		values.add("" + official.getRank(true));
-		values.add("" + official.getTierRank(true));
-		values.add("" + official.getNumGamesWorked());
-		values.add("" + official.getNumGamesWorked(Level.Varsity));
-		values.add("" + official.getCompositeScore(true));
-		values.add("" + official.getParticipationPoints());
-		values.add("" + official.getTestScore());
-		values.add("" + official.getAverageScoreReceived(true));
-		values.add("" + official.getEvalPenalty());
+	private static double getCompositeScore(Official o, Position p, boolean adjusted, EvaluationList currEvals, EvaluationList oldEvals) {
+		double prevScore = oldEvals.getAverageReceivedBy(o, p, adjusted);
+		double currScore = currEvals.getAverageReceivedBy(o, p, adjusted);
 		
-		return values.toArray(new String[0]);
+		if (currScore == 0) return 0;
+		if (prevScore == 0) prevScore = currScore;
+		
+		double partPoints = o.getParticipationPoints();
+		
+		double compEval = (prevScore * 5.0 / 12.0 + currScore * 7.0 / 12.0);
+		double partScore = Math.min(1.0, partPoints / 58.0);
+		
+		return 0.9 * (compEval / 9.0) + 0.1 * partScore;
 	}
 	
 	private static String[] getCsvHeaders() {
-		String[] headers = {"Name", "Tier", "Rank", "Tier Rank", "Games Worked", "Varsity Games Worked", "Composite", "Part. Points", "Test Score", "Eval. Avg.", "Penalty"}; 
+		String[] headers = {"Name", "Tier", "Varsity Games Worked", "Part. Points", "2017 Eval. Avg.", "2018 Eval. Avg.", "Composite Score"}; 
 		return headers;
-	}
+	}	
 	
-	private static String[] getMailMergeOutput(Official official) {
+	private static String[] getCsvOutput(Official official, Position p, Collection<Game> games, EvaluationList oldEvals, EvaluationList evals) {
 		List<String> values = new ArrayList<>();
 		values.add("" + official.getName());
-		values.add("" + official.getEmail());
 		values.add("" + official.getTier());
-		values.add("" + official.getRank(true));
-		values.add("" + official.getRank(Position.Referee, true));
-		values.add("" + official.getRank(Position.Umpire, true));
-		values.add("" + official.getRank(Position.HeadLinesman, true));
-		values.add("" + official.getRank(Position.LineJudge, true));
-		values.add("" + official.getRank(Position.HL_LJ, true));
-		values.add("" + official.getRank(Position.BackJudge, true));
+		values.add("" + getNumVarsityGamesFor(official, p, games));
+		values.add("" + official.getParticipationPoints());
+		values.add("" + oldEvals.getAverageReceivedBy(official, p, true));
+		values.add("" + evals.getAverageReceivedBy(official, p, true));
+		values.add("" + getCompositeScore(official, p, true, evals, oldEvals));
 		
 		return values.toArray(new String[0]);
-	}
-	
-	private static String[] getMailMergeHeaders() {
-		String[] headers = {"Name", "E-mail", "Tier", "Rank", "R Rank", "U Rank", "HL Rank", "LJ Rank", "HL/LJ Rank", "BJ Rank"}; 
-		return headers;
-	}
+	}	
 	
 	private static void readPartPoints(String fileName, Map<String, Official> officials) {
 		try {

@@ -9,11 +9,10 @@ public enum Tier {
 	NA;
 	
 	public static Tier parse(String s) {
-		Tier t;
+		Tier t = Tier.NA;
 		try {
 			t = Tier.valueOf(s);
-		} catch (IllegalArgumentException e) {
-			t = Tier.NA;
+		} catch (Exception e) {
 		}
 		
 		return t;

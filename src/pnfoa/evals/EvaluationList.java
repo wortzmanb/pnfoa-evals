@@ -40,25 +40,25 @@ public class EvaluationList implements Iterable<Evaluation> {
 	
 	public double getAverage(boolean adjusted) {
 		if (isAverageStale) {
-			average = getAverage(evals.values().stream(), adjusted);
+			average = getAverage(evals.values(), adjusted);
 		}
 		return average;
 	}
 	
 	public double getAverageGivenBy(Official o, boolean adjusted) {
 		return getAverage(evals.values().stream()
-							   			.filter((Evaluation e) -> e.getEvaluator().equals(o)), adjusted);
+							   			.filter((Evaluation e) -> e.getEvaluator().equals(o)).collect(Collectors.toList()), adjusted);
 	}
 	
 	public double getAverageReceivedBy(Official o, boolean adjusted) {
 		return getAverage(evals.values().stream()
-										.filter((Evaluation e) -> e.getOfficial().equals(o)), adjusted);
+										.filter((Evaluation e) -> e.getOfficial().equals(o)).collect(Collectors.toList()), adjusted);
 	}
 	
 	public double getAverageReceivedBy(Official o, Position pos, boolean adjusted) {
 		return getAverage(evals.values().stream()
-										.filter((Evaluation e) -> e.getEvaluator().equals(o))
-										.filter((Evaluation e) -> e.getPosition().equals(pos)), adjusted);
+										.filter((Evaluation e) -> e.getOfficial().equals(o))
+										.filter((Evaluation e) -> e.getPosition().equals(pos)).collect(Collectors.toList()), adjusted);
 					
 	}
 	
@@ -66,10 +66,15 @@ public class EvaluationList implements Iterable<Evaluation> {
 		return getAverage(false) - getAverageGivenBy(o, false);
 	}
 	
-	private double getAverage(Stream<Evaluation> s, boolean adjusted) {
-		return s.mapToDouble((Evaluation e) -> (e.getCompositeScore() + (adjusted ? getAdjustmentFor(e.getEvaluator()) : 0)))
+	private double getAverage(Collection<Evaluation> c, boolean adjusted) {
+		try {
+		return c.stream()
+				.mapToDouble((Evaluation e) -> (e.getCompositeScore() + (adjusted ? getAdjustmentFor(e.getEvaluator()) : 0)))
 				.average()
 				.getAsDouble();
+		} catch (NoSuchElementException e) {
+			return 0.0;
+		}
 	}
 	
 	public static EvaluationList fromCollection(Collection<Evaluation> c) {
