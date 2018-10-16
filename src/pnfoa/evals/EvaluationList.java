@@ -3,6 +3,7 @@ package pnfoa.evals;
 import java.io.FileNotFoundException;
 import java.text.ParseException;
 import java.util.*;
+import java.util.function.Predicate;
 import java.util.stream.*;
 
 import pnfoa.util.CSVParser;
@@ -27,6 +28,15 @@ public class EvaluationList implements Iterable<Evaluation> {
 	public Iterator<Evaluation> iterator() { return evals.values().iterator(); }
 	public Evaluation remove(Evaluation e) { isAverageStale = true; return evals.remove(e.getId()); }
 	public int size() { return evals.size(); }
+
+	public void removeIf(Predicate<? super Evaluation> filter) {
+		Iterator<Evaluation> iter = iterator();
+		while (iter.hasNext()) {
+			if (filter.test(iter.next())) {
+				iter.remove();
+			}
+		}
+	}
 	
 	public double getAverage(boolean adjusted) {
 		if (isAverageStale) {
@@ -81,7 +91,7 @@ public class EvaluationList implements Iterable<Evaluation> {
 				
 				Official evaluator = officials.get(record.get("Evaluator_Name"));
 				Official official = officials.get(record.get("Official_Name"));
-				Position position = Position.parse(record.get("Position Worked"));
+				Position position = Position.parse(record.get("Position_Worked"));
 				Game game = games.get(Integer.parseInt(record.get("GameID")));
 				
 				int id = Integer.parseInt(record.get("Evaluation_ID"));
