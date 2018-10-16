@@ -8,7 +8,7 @@ import pnfoa.evals.*;
 import pnfoa.util.*;
 
 public class PlayoffTextRunner {
-	public static final String DIRECTORY = "D:\\OneDrive\\PNFOA Board\\2017-18 - Evaluations\\2018 Playoff Meeting";
+	public static final String DIRECTORY = "C:\\Users\\brettwo\\OneDrive\\PNFOA Board\\2017-18 - Evaluations\\2018 Playoff Meeting";
 	
 	public static void main(String[] args) {
 		Scanner kb = new Scanner(System.in);
@@ -32,7 +32,7 @@ public class PlayoffTextRunner {
 		EvaluationList evals = EvaluationList.readEvals(directoryName + "\\Evaluations.csv", officials, games);
 		
 		readPartPoints(directoryName + "\\Participation.csv", officials);
-//		readTestScores(directoryName + "\\Test.csv", officials);
+		readTestScores(directoryName + "\\Test.csv", officials);
 		
 		oldGames.entrySet().removeIf((Map.Entry<Integer, Game> e) -> e.getValue().getDate().isBefore(LocalDateTime.of(2017, 10, 19, 0, 0, 0)));
 		oldEvals.removeIf((Evaluation e) -> e.getGame().getDate().isBefore(LocalDateTime.of(2017,  10, 19, 0, 0, 0)));
@@ -68,11 +68,11 @@ public class PlayoffTextRunner {
 		System.out.print("Export full rankings? ");
 		if (kb.next().toLowerCase().startsWith("y")) {
 			try {
-				CSVWriter refWriter = new CSVWriter(new FileWriter(DIRECTORY + "\\RefereeRankings.csv"));
-				CSVWriter umpWriter = new CSVWriter(new FileWriter(DIRECTORY + "\\UmpireRankings.csv"));
-				CSVWriter hlWriter = new CSVWriter(new FileWriter(DIRECTORY + "\\HeadLinesRankings.csv"));
-				CSVWriter ljWriter = new CSVWriter(new FileWriter(DIRECTORY + "\\LineJudgeRankings.csv"));
-				CSVWriter bjWriter = new CSVWriter(new FileWriter(DIRECTORY + "\\BackJudgeRankings.csv"));
+				CSVWriter refWriter = new CSVWriter(new FileWriter(DIRECTORY + "\\Rankings_Referee.csv"));
+				CSVWriter umpWriter = new CSVWriter(new FileWriter(DIRECTORY + "\\Rankings_Umpire.csv"));
+				CSVWriter hlWriter = new CSVWriter(new FileWriter(DIRECTORY + "\\Rankings_HeadLines.csv"));
+				CSVWriter ljWriter = new CSVWriter(new FileWriter(DIRECTORY + "\\Rankings_LineJudge.csv"));
+				CSVWriter bjWriter = new CSVWriter(new FileWriter(DIRECTORY + "\\Rankings_BackJudge.csv"));
 				refWriter.writeNext(getCsvHeaders());
 				umpWriter.writeNext(getCsvHeaders());
 				hlWriter.writeNext(getCsvHeaders());
@@ -104,6 +104,10 @@ public class PlayoffTextRunner {
 		return (int)(games.stream().filter((Game g) -> g.getPositionOf(o) == p && g.getLevel() == Level.Varsity).count());
 	}
 	
+	private static int getNumVarsityGamesFor(Official o, Collection<Game> games) {
+		return (int)(games.stream().filter((Game g) -> g.getPositionOf(o) != null && g.getLevel() == Level.Varsity).count());
+	}	
+	
 	private static double getCompositeScore(Official o, Position p, boolean adjusted, EvaluationList currEvals, EvaluationList oldEvals) {
 		double prevScore = oldEvals.getAverageReceivedBy(o, p, adjusted);
 		double currScore = currEvals.getAverageReceivedBy(o, p, adjusted);
@@ -120,7 +124,7 @@ public class PlayoffTextRunner {
 	}
 	
 	private static String[] getCsvHeaders() {
-		String[] headers = {"Name", "Tier", "Varsity Games Worked", "Part. Points", "2017 Eval. Avg.", "2018 Eval. Avg.", "Composite Score"}; 
+		String[] headers = {"Name", "Tier", "Test Score", "Varsity Games", "Games @ Pos", "Part. Points", "2017 Eval. Avg.", "2018 Eval. Avg.", "Composite Score"}; 
 		return headers;
 	}	
 	
@@ -128,6 +132,8 @@ public class PlayoffTextRunner {
 		List<String> values = new ArrayList<>();
 		values.add("" + official.getName());
 		values.add("" + official.getTier());
+		values.add("" + official.getTestScore());
+		values.add("" + getNumVarsityGamesFor(official, games));
 		values.add("" + getNumVarsityGamesFor(official, p, games));
 		values.add("" + official.getParticipationPoints());
 		values.add("" + oldEvals.getAverageReceivedBy(official, p, true));
