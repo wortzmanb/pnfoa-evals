@@ -19,14 +19,6 @@ public class Official implements Comparable<Official> {
 
 	private Map<Ranking, Integer> ranks;
 	
-	public static final double PART_POINTS_MAX = 100;
-	public static final double EVAL_MAX = 9;
-	public static final double TEST_MAX = 100;
-	
-	public static final double PART_POINTS_WEIGHT = 0.1;
-	public static final double TEST_WEIGHT = 0.2;
-	public static final double EVAL_WEIGHT = 0.7;
-	
 	public static final int MIN_GAMES_TO_RANK = 3;
 	
 	private static List<Official> allOfficials;
@@ -89,42 +81,6 @@ public class Official implements Comparable<Official> {
 		breakOrdering();
 	}
 
-	public double getAverageScoreGiven(boolean adjusted) {
-		return getAverage(evalsGiven, adjusted);
-	}
-
-	public double getAverageScoreReceived(boolean adjusted) {
-		return getAverage(evalsReceived, adjusted);
-	}
-	
-	public double getAverageScoreReceived(Position pos, boolean adjusted) {
-		if (evalsReceived == null) return Double.NEGATIVE_INFINITY;
-		if (pos == Position.HL_LJ) {
-			if  (getNumGamesWorked(Position.HeadLinesman) + getNumGamesWorked(Position.LineJudge) == 0) return Double.NEGATIVE_INFINITY;
-			return getAverage(evalsReceived
-					.stream()
-					.filter(e -> e.getGame().getPositionOf(e.getOfficial()) == Position.HeadLinesman || e.getGame().getPositionOf(e.getOfficial()) == Position.LineJudge)
-					.collect(Collectors.toList()), adjusted);
-		}
-				
-
-		if (getNumGamesWorked(pos) == 0) return Double.NEGATIVE_INFINITY;
-		return getAverage(evalsReceived
-				.stream()
-				.filter(e -> e.getGame().getPositionOf(e.getOfficial()) == pos)
-				.collect(Collectors.toList()), adjusted);
-	}
-	
-	private static double getAverage(Collection<Evaluation> evals, boolean adjusted) {
-		if (evals == null || evals.size() == 0) return Double.NEGATIVE_INFINITY;
-		
-		double total = 0;
-		for (Evaluation eval : evals) {
-			total += (eval.getCompositeScore() + (adjusted ? eval.getEvaluator().getAdjustment() : 0));
-		}
-		return (total / evals.size());
-	}
-
 	public double getEvalPenalty() {
 		if (getGamesWorked() == null) return 0.0;
 		
@@ -154,71 +110,49 @@ public class Official implements Comparable<Official> {
 		}
 	}
 	
-	public double getAdjustment() {
-		return Evaluation.getGlobalAverage() - getAverageScoreGiven(false);
-	}
-	
-	public double getCompositeScore(boolean adjusted) {
-		return getCompositeScore(this.getParticipationPoints(), this.getTestScore(), this.getAverageScoreReceived(adjusted));
-	}
-
-	
-	public double getCompositeScore(Position pos, boolean adjusted) { 
-		if (pos == null) {
-			return getCompositeScore(this.getParticipationPoints(), this.getTestScore(), this.getAverageScoreReceived(adjusted));
-		}
-		return getCompositeScore(this.getParticipationPoints(), this.getTestScore(), this.getAverageScoreReceived(pos, adjusted));
-	}
-	
-	private double getCompositeScore(double part, double test, double evals) {
-		return (part / PART_POINTS_MAX * PART_POINTS_WEIGHT) + 
-			   (test / TEST_MAX * TEST_WEIGHT) +
-			   ((evals - getEvalPenalty()) / EVAL_MAX * EVAL_WEIGHT);
-	}
-	
-	public int getRank(boolean adjusted) {
-		return getRank(null, adjusted);
-	}
-
-	public int getRank(Position pos, boolean adjusted) {
-		if (!ranks.containsKey(Ranking.getValue(pos, adjusted))) {
-			sortOfficials(pos, adjusted);
-		}
-		return ranks.get(Ranking.getValue(pos, adjusted));
-	}
-	
-	public int getTierRank(boolean adjusted) {
-		return getTierRank(null, adjusted);
-	}
-	
-	public int getTierRank(Position pos, boolean adjusted) {
-		if (!ranks.containsKey(Ranking.getValue(pos, adjusted))) {
-			sortOfficials(pos, adjusted);
-		}		
-		List<Official> tier = new ArrayList<>(allOfficials);
-		tier.removeIf((Official o) -> o.getTier() != this.getTier());
-		return 1 + tier.indexOf(this);
-	}
-	
-	private void sortOfficials(Position pos, boolean adjusted) {
-		allOfficials.sort((Official o1, Official o2) -> Double.compare(o2.getCompositeScore(pos, adjusted), o1.getCompositeScore(pos, adjusted)));
-		
-		Ranking r = Ranking.getValue(pos, adjusted);
-		int count = 1;
-		for (int i = 0; i < allOfficials.size(); i++) {
-			Official o = allOfficials.get(i);
-			if (o.getCompositeScore(pos, adjusted) == Double.NEGATIVE_INFINITY ||
-				(pos == Position.HL_LJ && (o.getNumGamesWorked(Level.Varsity, Position.HeadLinesman) + o.getNumGamesWorked(Level.Varsity, Position.LineJudge)) < MIN_GAMES_TO_RANK) ||
-				(pos == null && o.getNumGamesWorked(Level.Varsity) < MIN_GAMES_TO_RANK) ||
-				(pos != null && pos != Position.HL_LJ && o.getNumGamesWorked(Level.Varsity, pos) < MIN_GAMES_TO_RANK)) {
-				o.ranks.put(r, Integer.MAX_VALUE);
-			} else {
-				o.ranks.put(r, count);
-				count++;
-			}
-		}
-		rankCounts.put(r, count - 1);
-	}
+//	public int getRank(boolean adjusted) {
+//		return getRank(null, adjusted);
+//	}
+//
+//	public int getRank(Position pos, boolean adjusted) {
+//		if (!ranks.containsKey(Ranking.getValue(pos, adjusted))) {
+//			sortOfficials(pos, adjusted);
+//		}
+//		return ranks.get(Ranking.getValue(pos, adjusted));
+//	}
+//	
+//	public int getTierRank(boolean adjusted) {
+//		return getTierRank(null, adjusted);
+//	}
+//	
+//	public int getTierRank(Position pos, boolean adjusted) {
+//		if (!ranks.containsKey(Ranking.getValue(pos, adjusted))) {
+//			sortOfficials(pos, adjusted);
+//		}		
+//		List<Official> tier = new ArrayList<>(allOfficials);
+//		tier.removeIf((Official o) -> o.getTier() != this.getTier());
+//		return 1 + tier.indexOf(this);
+//	}
+//	
+//	private void sortOfficials(Position pos, boolean adjusted) {
+//		allOfficials.sort((Official o1, Official o2) -> Double.compare(o2.getCompositeScore(pos, adjusted), o1.getCompositeScore(pos, adjusted)));
+//		
+//		Ranking r = Ranking.getValue(pos, adjusted);
+//		int count = 1;
+//		for (int i = 0; i < allOfficials.size(); i++) {
+//			Official o = allOfficials.get(i);
+//			if (o.getCompositeScore(pos, adjusted) == Double.NEGATIVE_INFINITY ||
+//				(pos == Position.HL_LJ && (o.getNumGamesWorked(Level.Varsity, Position.HeadLinesman) + o.getNumGamesWorked(Level.Varsity, Position.LineJudge)) < MIN_GAMES_TO_RANK) ||
+//				(pos == null && o.getNumGamesWorked(Level.Varsity) < MIN_GAMES_TO_RANK) ||
+//				(pos != null && pos != Position.HL_LJ && o.getNumGamesWorked(Level.Varsity, pos) < MIN_GAMES_TO_RANK)) {
+//				o.ranks.put(r, Integer.MAX_VALUE);
+//			} else {
+//				o.ranks.put(r, count);
+//				count++;
+//			}
+//		}
+//		rankCounts.put(r, count - 1);
+//	}
 	
 	public Collection<Game> getGamesWorked(Position pos) { 
 		return this.gamesWorked == null ? null : 
