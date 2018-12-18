@@ -56,6 +56,9 @@ public class EvaluationList implements Iterable<Evaluation> {
 	}
 	
 	public double getAverageReceivedBy(Official o, Position pos, boolean adjusted) {
+		if (pos == null) {
+			return getAverageReceivedBy(o, adjusted);
+		}
 		return getAverage(evals.values().stream()
 										.filter((Evaluation e) -> e.getOfficial().equals(o))
 										.filter((Evaluation e) -> e.getPosition().equals(pos)).collect(Collectors.toList()), adjusted);
