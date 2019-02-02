@@ -74,7 +74,6 @@ public class Game implements Comparable<Game> {
 			while (parser.hasNextRecord()) {
 				Map<String, String> record = parser.nextRecord();
 				if (record == null) continue;
-				
 				int id = Integer.parseInt(record.get("GameID"));
 				if (!games.containsKey(id)) {
 					games.put(id, new Game(id,
@@ -85,6 +84,12 @@ public class Game implements Comparable<Game> {
 										   record.get("LevelName")));
 				}
 				Game game = games.get(id);
+				
+				// Skip canceled games
+				if (record.get("GameStatus").equals("Canceled")) {
+					System.out.println("Skipping cancelled game: " + game);
+					continue;
+				}				
 				
 				String firstName = record.get("FirstName");
 				String lastName = record.get("LastName");
@@ -131,7 +136,7 @@ public class Game implements Comparable<Game> {
 
 	@Override
 	public String toString() {
-		return String.format("%s: %s @ %s (%s) - %s", getDateString(), awayTeam, homeTeam, level, officials.values());
+		return String.format("%s: %s @ %s (%s) - %s", getDateString(), awayTeam, homeTeam, level, officials == null ? "[]" : officials.values());
 	}
 	
 	@Override

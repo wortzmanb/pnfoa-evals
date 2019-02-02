@@ -73,13 +73,17 @@ public class Evaluation implements Comparable<Evaluation> {
 	}
 	
 	public LocalDateTime dueDate() {
-		LocalDateTime due = game.getDate().with(TemporalAdjusters.next(DayOfWeek.WEDNESDAY));
+		return dueDateFor(game.getDate());
+	}
+	
+	public static LocalDateTime dueDateFor(LocalDateTime gameDate) {
+		LocalDateTime due = gameDate.with(TemporalAdjusters.next(DayOfWeek.WEDNESDAY));
 		due = due.withHour(23).withMinute(59).withSecond(59);
 		
 		while (due.isBefore(FIRST_DUE)) {
 			due = due.plusDays(1);
 		}
-		return due;
+		return due;		
 	}
 	
 	public boolean isLate() {

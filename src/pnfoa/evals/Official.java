@@ -1,6 +1,7 @@
 package pnfoa.evals;
 
 import java.io.FileNotFoundException;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -84,7 +85,7 @@ public class Official implements Comparable<Official> {
 	public double getEvalPenalty() {
 		if (getGamesWorked() == null) return 0.0;
 		
-		Set<Game> missed = new HashSet<>();
+		Set<LocalDateTime> missed = new HashSet<>();
 		for (Game g : getGamesWorked()) {
 			if (g.getLevel() == Level.Varsity) {
 				boolean ok = false;
@@ -96,7 +97,7 @@ public class Official implements Comparable<Official> {
 					}
 				}
 				if (!ok) {
-					missed.add(g);
+					missed.add(Evaluation.dueDateFor(g.getDate()));
 				}
 			}
 		}
