@@ -22,7 +22,7 @@ public class Game implements Comparable<Game> {
 		this.location = loc;
 		this.homeTeam = home;
 		this.awayTeam = away;
-		DateTimeFormatter df = DateTimeFormatter.ofPattern("M/d/yyyy h:mm:ss a");
+		DateTimeFormatter df = DateTimeFormatter.ofPattern("M/d/yyyy H:mm");
 		this.date = LocalDateTime.parse(date, df);
 		this.level = Level.parse(level);
 	}
@@ -53,6 +53,7 @@ public class Game implements Comparable<Game> {
 			case JV:
 			case Sophomore:
 			case Freshman:
+			case CTeam:
 			case JrHigh8thGrade:
 			case JrHigh7thGrade:
 				return t == Tier.V1 ? 20 : 10; 

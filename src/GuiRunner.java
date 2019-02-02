@@ -13,9 +13,9 @@ import pnfoa.util.CSVParser;
 public class GuiRunner {
 	private Map<String, Official> officials;
 	private Map<Integer, Game> games;
-	private Map<Integer, Evaluation> evals;
+	private EvaluationList evals;
 	
-	public static final String DIRECTORY = "D:\\OneDrive\\PNFOA Board\\2017-18 - Evaluations\\Evals App\\Move-Up";
+	public static final String DIRECTORY = "C:\\Users\\bwort\\OneDrive\\PNFOA Board\\2017-18 - Evaluations\\2018 Move-up Meeting";
 
 	public static void main(String[] args) {
 		Scanner kb = new Scanner(System.in);
@@ -34,7 +34,7 @@ public class GuiRunner {
 		
 //		System.out.print("Evaluations file? ");
 //		String evalFileName = kb.nextLine();
-		Map<Integer, Evaluation> evals = Evaluation.readEvals(directoryName + "\\Evaluations.csv", officials, games);
+		EvaluationList evals = EvaluationList.readEvals(directoryName + "\\Evaluations.csv", officials, games);
 		
 		readPartPoints(directoryName + "\\Participation.csv", officials);
 		readTestScores(directoryName + "\\Test.csv", officials);
@@ -89,7 +89,7 @@ public class GuiRunner {
 		}
 	}	
 	
-	public GuiRunner(Map<String, Official> officials, Map<Integer, Game> games, Map<Integer, Evaluation> evals) {
+	public GuiRunner(Map<String, Official> officials, Map<Integer, Game> games, EvaluationList evals) {
 		this.officials = officials;
 		this.games = games;
 		this.evals = evals;
@@ -121,9 +121,9 @@ public class GuiRunner {
 	private JComponent makePanel(String panelName) {
 		JTable table;
 		if (panelName.equals("Evaluations")) {
-			table = new JTable(new EvaluationTableModel(new ArrayList<Evaluation>(evals.values())));
+			table = new JTable(new EvaluationTableModel(evals.asList()));
 		} else if (panelName.equals("Officials")) {
-			OfficialTableModel model = new OfficialTableModel(new ArrayList<Official>(officials.values()));
+			OfficialTableModel model = new OfficialTableModel(new ArrayList<Official>(officials.values()), evals);
 			table = new JTable(model) {
 				public String getToolTipText(MouseEvent e) {
 			        java.awt.Point p = e.getPoint();
@@ -137,9 +137,9 @@ public class GuiRunner {
 		} else  if (panelName.equals("Games")) {
 			table = new JTable(new GameTableModel(new ArrayList<Game>(games.values())));
 		} else if (panelName.equals("Rankings")) {
-			table = new JTable(new RankingTableModel(new ArrayList<Official>(officials.values()), true));
+			table = new JTable(new RankingTableModel(new ArrayList<Official>(officials.values()), evals, true));
 		} else if (panelName.equals("Positions")) {
-			table = new JTable(new PositionTableModel(new ArrayList<Official>(officials.values()), true));
+			table = new JTable(new PositionTableModel(new ArrayList<Official>(officials.values()), evals, true));
 		} else {
 			throw new IllegalArgumentException("Invalid tab name");
 		}

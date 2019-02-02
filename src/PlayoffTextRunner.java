@@ -8,7 +8,11 @@ import pnfoa.evals.*;
 import pnfoa.util.*;
 
 public class PlayoffTextRunner {
-	public static final String DIRECTORY = "C:\\Users\\brettwo\\OneDrive\\PNFOA Board\\2017-18 - Evaluations\\2018 Playoff Meeting";
+	public static final String DIRECTORY = "C:\\Users\\bwort\\OneDrive\\PNFOA Board\\2017-18 - Evaluations\\2018 Playoff Meeting";
+	
+	private static final LocalDateTime PREV_WEEK6 = LocalDateTime.of(2017, 10, 5, 0, 0, 0);
+	private static final LocalDateTime PREV_WEEK10 = LocalDateTime.of(2017, 11, 5, 0, 0, 0);
+	private static final boolean V1_EVALS_ONLY = false;
 	
 	public static void main(String[] args) {
 		Scanner kb = new Scanner(System.in);
@@ -34,10 +38,17 @@ public class PlayoffTextRunner {
 		readPartPoints(directoryName + "\\Participation.csv", officials);
 		readTestScores(directoryName + "\\Test.csv", officials);
 		
-		oldGames.entrySet().removeIf((Map.Entry<Integer, Game> e) -> e.getValue().getDate().isBefore(LocalDateTime.of(2017, 10, 19, 0, 0, 0)));
-		oldEvals.removeIf((Evaluation e) -> e.getGame().getDate().isBefore(LocalDateTime.of(2017,  10, 19, 0, 0, 0)));
+		oldGames.entrySet().removeIf((Map.Entry<Integer, Game> e) -> e.getValue().getDate().isBefore(PREV_WEEK6));
+		oldEvals.removeIf((Evaluation e) -> e.getGame().getDate().isBefore(PREV_WEEK6));
+		oldGames.entrySet().removeIf((Map.Entry<Integer, Game> e) -> e.getValue().getDate().isAfter(PREV_WEEK10));
+		oldEvals.removeIf((Evaluation e) -> e.getGame().getDate().isAfter(PREV_WEEK10));
 		
-		Official brett = officials.get("Wortzman, Brett");
+		if (V1_EVALS_ONLY) {
+			oldEvals.removeIf((Evaluation e) -> e.getEvaluator().getTier() != Tier.V1);
+			evals.removeIf((Evaluation e) -> e.getEvaluator().getTier() != Tier.V1);
+		}
+		
+		Official brett = officials.get("Schomburg, Brooks");
 		System.out.println(brett + ": ");
 		System.out.println("  Test score: " + brett.getTestScore());
 		System.out.println("  Participation points: " + brett.getParticipationPoints());
@@ -68,17 +79,19 @@ public class PlayoffTextRunner {
 		System.out.print("Export full rankings? ");
 		if (kb.next().toLowerCase().startsWith("y")) {
 			try {
-				CSVWriter refWriter = new CSVWriter(new FileWriter(DIRECTORY + "\\Rankings_Referee.csv"));
-				CSVWriter umpWriter = new CSVWriter(new FileWriter(DIRECTORY + "\\Rankings_Umpire.csv"));
-				CSVWriter hlWriter = new CSVWriter(new FileWriter(DIRECTORY + "\\Rankings_HeadLines.csv"));
-				CSVWriter ljWriter = new CSVWriter(new FileWriter(DIRECTORY + "\\Rankings_LineJudge.csv"));
-				CSVWriter bjWriter = new CSVWriter(new FileWriter(DIRECTORY + "\\Rankings_BackJudge.csv"));
+				CSVWriter overallWriter = new CSVWriter(new FileWriter(DIRECTORY + "\\Rankings_Overall" + (V1_EVALS_ONLY ? "_V1" : "") + ".csv"));
+				CSVWriter refWriter = new CSVWriter(new FileWriter(DIRECTORY + "\\Rankings_Referee" + (V1_EVALS_ONLY ? "_V1" : "") + ".csv"));
+				CSVWriter umpWriter = new CSVWriter(new FileWriter(DIRECTORY + "\\Rankings_Umpire" + (V1_EVALS_ONLY ? "_V1" : "") + ".csv"));
+				CSVWriter hlWriter = new CSVWriter(new FileWriter(DIRECTORY + "\\Rankings_HeadLines" + (V1_EVALS_ONLY ? "_V1" : "")  + ".csv"));
+				CSVWriter ljWriter = new CSVWriter(new FileWriter(DIRECTORY + "\\Rankings_LineJudge" + (V1_EVALS_ONLY ? "_V1" : "")  + ".csv"));
+				CSVWriter bjWriter = new CSVWriter(new FileWriter(DIRECTORY + "\\Rankings_BackJudge" + (V1_EVALS_ONLY ? "_V1" : "")  + ".csv"));
 				refWriter.writeNext(getCsvHeaders());
 				umpWriter.writeNext(getCsvHeaders());
 				hlWriter.writeNext(getCsvHeaders());
 				ljWriter.writeNext(getCsvHeaders());
 				bjWriter.writeNext(getCsvHeaders());
 				for (Official o : officials.values()) {
+					overallWriter.writeNext(getCsvOutput(o, null, games.values(), oldEvals, evals));
 					refWriter.writeNext(getCsvOutput(o, Position.Referee, games.values(), oldEvals, evals));
 					umpWriter.writeNext(getCsvOutput(o, Position.Umpire, games.values(), oldEvals, evals));
 					hlWriter.writeNext(getCsvOutput(o, Position.HeadLinesman, games.values(), oldEvals, evals));
@@ -86,6 +99,7 @@ public class PlayoffTextRunner {
 					bjWriter.writeNext(getCsvOutput(o, Position.BackJudge, games.values(), oldEvals, evals));
 				}
 
+				overallWriter.close();
 				refWriter.close();
 				umpWriter.close();
 				hlWriter.close();
@@ -101,6 +115,9 @@ public class PlayoffTextRunner {
     }
 	
 	private static int getNumVarsityGamesFor(Official o, Position p, Collection<Game> games) {
+		if (p == null) {
+			return getNumVarsityGamesFor(o, games);
+		}
 		return (int)(games.stream().filter((Game g) -> g.getPositionOf(o) == p && g.getLevel() == Level.Varsity).count());
 	}
 	

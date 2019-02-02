@@ -26,6 +26,7 @@ public class EvaluationList implements Iterable<Evaluation> {
 	public Evaluation get(int id) { return evals.get(id); }
 	public boolean isEmpty() { return evals.isEmpty(); }
 	public Iterator<Evaluation> iterator() { return evals.values().iterator(); }
+	public List<Evaluation> asList() { return new ArrayList(evals.values()); }
 	public Evaluation remove(Evaluation e) { isAverageStale = true; return evals.remove(e.getId()); }
 	public int size() { return evals.size(); }
 

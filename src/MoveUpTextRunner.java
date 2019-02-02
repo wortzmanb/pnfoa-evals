@@ -6,7 +6,7 @@ import pnfoa.util.CSVParser;
 import com.opencsv.*;
 
 public class MoveUpTextRunner {
-	public static final String DIRECTORY = "D:\\OneDrive\\PNFOA Board\\2017-18 - Evaluations\\Evals App\\Move-Up";
+	public static final String DIRECTORY = "C:\\Users\\bwort\\OneDrive\\PNFOA Board\\2017-18 - Evaluations\\2018 Move-up Meeting";
 
 	public static final double PART_POINTS_MAX = 100;
 	public static final double EVAL_MAX = 9;
@@ -156,6 +156,7 @@ public class MoveUpTextRunner {
 		values.add("" + eval.getEvaluator());
 		values.add("" + eval.getOfficial());
 		values.add("" + eval.getCompositeScore());
+		values.add("" + eval.isLate());
 		for (String crit : Evaluation.critWeights.keySet()) {
 			values.add("" + eval.getScores().get(crit));
 			values.add(eval.getComments().get(crit));
@@ -166,7 +167,7 @@ public class MoveUpTextRunner {
 	
 	private static String[] getEvalsCsvHeaders() {
 		List<String> headers = new ArrayList<>();
-		headers.addAll(Arrays.asList(new String[]{"Id", "Date", "Game", "Evaluator", "Official", "Composite Score"}));
+		headers.addAll(Arrays.asList(new String[]{"Id", "Date", "Game", "Evaluator", "Official", "Composite Score", "Late?"}));
 		for (String crit : Evaluation.critWeights.keySet()) {
 			headers.add(crit + " Score");
 			headers.add(crit + " Comment");
@@ -193,7 +194,7 @@ public class MoveUpTextRunner {
 	}
 	
 	private static String[] getCsvHeaders() {
-		String[] headers = {"Name", "Tier", "Rank", "Tier Rank", "Games Worked", "Varsity Games Worked", "Composite", "Part. Points", "Test Score", "Eval. Avg.", "Penalty"}; 
+		String[] headers = {"Name", "Tier", "Games Worked", "Varsity Games Worked", "Composite", "Part. Points", "Test Score", "Eval. Avg.", "Penalty"}; 
 		return headers;
 	}
 	

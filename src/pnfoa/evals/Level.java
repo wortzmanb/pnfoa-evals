@@ -2,10 +2,12 @@ package pnfoa.evals;
 
 public enum Level {
 	Varsity,
+	VarsityCrew,
 	TrainingSubVarsity,
 	JV,
 	Sophomore,
 	Freshman,
+	CTeam,
 	JrHigh8thGrade,
 	JrHigh7thGrade,
 	Rec10min,

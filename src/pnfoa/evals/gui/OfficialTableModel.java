@@ -10,12 +10,22 @@ public class OfficialTableModel extends AbstractTableModel {
 	 */
 	private static final long serialVersionUID = -8820665206299457464L;
 	
+	public static final double PART_POINTS_MAX = 100;
+	public static final double EVAL_MAX = 9;
+	public static final double TEST_MAX = 100;
+	
+	public static final double PART_POINTS_WEIGHT = 0.1;
+	public static final double TEST_WEIGHT = 0.2;
+	public static final double EVAL_WEIGHT = 0.7;	
+	
 	private String[] columnNames = {"Name", "Tier", "# Games Worked", "# Evals Given", "Given Avg.", "# Evals Received", "Received Avg.", "# Evals Late", "Eval. Adjustment"};
 	private List<Official> officials;
+	private EvaluationList evals;
 	private int rowCount;
 	
-	public OfficialTableModel(List<Official> officials) {
+	public OfficialTableModel(List<Official> officials, EvaluationList evals) {
 		this.officials = officials;
+		this.evals = evals;
 		this.rowCount = officials.size();
 	}
 
@@ -52,12 +62,12 @@ public class OfficialTableModel extends AbstractTableModel {
 			case 1: return official.getTier();
 			case 2: return official.getNumGamesWorked();
 			case 3: return official.getNumEvalsGiven();
-			case 4: return official.getAverageScoreGiven(false);
+			case 4: return evals.getAverageGivenBy(official, false);
 			case 5: return official.getNumEvalsReceived();
-			case 6: return official.getAverageScoreReceived(false);
+			case 6: return evals.getAverageReceivedBy(official, false);
 			case 7: return official.getNumEvalsLate();
-			case 8: return official.getCompositeScore(false);
-			case 9: return official.getAdjustment();
+			case 8: return getCompositeScoreFor(official, null, false);
+			case 9: return evals.getAdjustmentFor(official);
 			default: return null;
 		}
 	}
@@ -76,4 +86,14 @@ public class OfficialTableModel extends AbstractTableModel {
 		}
 		return null;
 	}
+	
+	private double getCompositeScoreFor(Official o, Position pos, boolean adjusted) {
+		return getCompositeScore(o.getParticipationPoints(), o.getTestScore(), evals.getAverageReceivedBy(o, pos, adjusted), o.getEvalPenalty());
+	}	
+	
+	private double getCompositeScore(double part, double test, double evals, double penalty) {
+		return (part / PART_POINTS_MAX * PART_POINTS_WEIGHT) + 
+			   (test / TEST_MAX * TEST_WEIGHT) +
+			   ((evals - penalty) / EVAL_MAX * EVAL_WEIGHT);
+	}	
 }
