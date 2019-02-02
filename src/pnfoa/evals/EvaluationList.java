@@ -62,7 +62,8 @@ public class EvaluationList implements Iterable<Evaluation> {
 		}
 		return getAverage(evals.values().stream()
 										.filter((Evaluation e) -> e.getOfficial().equals(o))
-										.filter((Evaluation e) -> e.getPosition().equals(pos)).collect(Collectors.toList()), adjusted);
+										.filter((Evaluation e) -> e.getPosition().matches(pos))
+										.collect(Collectors.toList()), adjusted);
 					
 	}
 	

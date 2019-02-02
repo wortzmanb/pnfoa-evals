@@ -18,4 +18,13 @@ public enum Position {
 			return Position.Other;
 		}
 	}
+	
+	public boolean matches(Position other) {
+		if (this.equals(HL_LJ)) {
+			return other.equals(HL_LJ) || other.equals(HeadLinesman) || other.equals(LineJudge);
+		} else if (other.equals(HL_LJ)) {
+			return this.equals(HL_LJ) || this.equals(HeadLinesman) || this.equals(LineJudge);
+		}
+		return this.equals(other);
+	}
 }
