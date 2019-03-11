@@ -7,7 +7,7 @@ import pnfoa.util.CSVParser;
 import com.opencsv.*;
 
 public class MoveUpTextRunner {
-	public static final String DIRECTORY = "D:\\OneDrive\\PNFOA Board\\2017-18 - Evaluations\\2018 Move-up Meeting\\February";
+	public static final String DIRECTORY = "C:\\Users\\brettwo\\OneDrive\\PNFOA Board\\2017-18 - Evaluations\\2018 Move-up Meeting";
 
 	public static final double PART_POINTS_MAX = 100;
 	public static final double EVAL_MAX = 9;
@@ -67,14 +67,31 @@ public class MoveUpTextRunner {
 			}
 		}
 		
-		// Export full rankings
-		System.out.print("Export full rankings? ");
+		// Export rankings summary 
+		System.out.print("Export rankings summary? ");
 		if (kb.next().toLowerCase().startsWith("y")) {
 			try {
 				CSVWriter writer = new CSVWriter(new FileWriter(DIRECTORY + "\\GeneratedRankings.csv"));
-				writer.writeNext(getCsvHeaders());
+				writer.writeNext(getSummaryCsvHeaders());
 				for (Official o : officials.values()) {
-					writer.writeNext(runner.getCsvOutput(o));
+					writer.writeNext(runner.getSummaryCsvOutput(o));
+				}
+
+				writer.close();
+			} catch (IOException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+		}
+		
+		// Export full rankings 
+		System.out.print("Export full rankings? ");
+		if (kb.next().toLowerCase().startsWith("y")) {
+			try {
+				CSVWriter writer = new CSVWriter(new FileWriter(DIRECTORY + "\\FullRankings.csv"));
+				writer.writeNext(getFullRankingsHeaders());
+				for (Official o : officials.values()) {
+					writer.writeNext(runner.getFullRankingsOutput(o));
 				}
 
 				writer.close();
@@ -142,9 +159,9 @@ public class MoveUpTextRunner {
 		System.out.println(o + ": ");
 		System.out.println("   " + o.getNumGamesWorked() + " games worked");
 		System.out.println("       " + o.getGamesWorked());
-		System.out.println("   " + o.getNumEvalsReceived() + " evals received (average = " + evals.getAverageReceivedBy(o, null, false));
+		System.out.println("   " + o.getNumEvalsReceived() + " evals received (average = " + evals.getAverageReceivedBy(o, null, false) + ")");
 		System.out.println("       " + o.getEvalsReceived());
-		System.out.println("   " + o.getNumEvalsGiven() + " evals given (average = " + evals.getAverageGivenBy(o, false));
+		System.out.println("   " + o.getNumEvalsGiven() + " evals given (average = " + evals.getAverageGivenBy(o, false) + ")");
 		System.out.println("       " + o.getEvalsGiven());
 		System.out.println("       " + o.getNumEvalsLate() + " late");
 		System.out.println("         " + Arrays.toString(o.getEvalsGiven().stream().filter(e -> e.isLate()).toArray(Evaluation[]::new)));
@@ -220,7 +237,7 @@ public class MoveUpTextRunner {
 		return headers.toArray(new String[0]);
 	}	
 	
-	private String[] getCsvOutput(Official official) {
+	private String[] getSummaryCsvOutput(Official official) {
 		List<String> values = new ArrayList<>();
 		values.add("" + official.getName());
 		values.add("" + official.getTier());
@@ -231,12 +248,14 @@ public class MoveUpTextRunner {
 		values.add("" + official.getTestScore());
 		values.add("" + evals.getAverageReceivedBy(official, null, true));
 		values.add("" + official.getEvalPenalty());
+		values.add("" + evals.getAverageGivenBy(official, false));
+		values.add("" + evals.getAdjustmentFor(official));
 		
 		return values.toArray(new String[0]);
 	}
 	
-	private static String[] getCsvHeaders() {
-		String[] headers = {"Name", "Tier", "Games Worked", "Varsity Games Worked", "Composite", "Part. Points", "Test Score", "Eval. Avg.", "Penalty"}; 
+	private static String[] getSummaryCsvHeaders() {
+		String[] headers = {"Name", "Tier", "Games Worked", "Varsity Games Worked", "Composite", "Part. Points", "Test Score", "Eval. Avg.", "Penalty", "Given Avg.", "Adjustment"}; 
 		return headers;
 	}
 	
@@ -256,10 +275,44 @@ public class MoveUpTextRunner {
 		return values.toArray(new String[0]);
 	}
 	
+	private static String[] getFullRankingsHeaders() {
+		String[] headers = {"Name", "Tier", "Test", "Part. Points", 
+							"Overall Eval.", "Adjusted Eval.", "Overall Comp.", "Overall Rank", 
+							"R Eval.", "Adjusted Eval.", "R Comp.", "R Rank", 
+							"U Eval.", "Adjusted Eval.", "U Comp.", "U Rank",
+							"HL Eval.", "Adjusted Eval.", "HL Comp.", "HL Rank",
+							"LJ Eval.", "Adjusted Eval.", "LJ Comp.", "LJ Rank", 
+							"HL/LJ Eval.", "Adjusted Eval.", "HL/LJ Comp.", "HL/LJ Rank", 
+							"BJ Eval.", "Adjusted Eval.", "BJ Comp.", "BJ Rank"}; 
+		return headers;
+	}
+	
+	private String[] getFullRankingsOutput(Official official) {
+		List<String> values = new ArrayList<>();
+		values.add("" + official.getName());
+		values.add("" + official.getTier());
+		values.add("" + official.getTestScore());
+		values.add("" + official.getParticipationPoints());
+		values.add("" + evals.getAverageReceivedBy(official, null, false));
+		values.add("" + evals.getAverageReceivedBy(official, null, true));
+		values.add("" + getCompositeScoreFor(official, null, true));
+		values.add("" + getRankingFor(official, null));
+		for (int i = 0; i < 6; i++) {
+			values.add("" + evals.getAverageReceivedBy(official, Position.values()[i], false));
+			values.add("" + evals.getAverageReceivedBy(official, Position.values()[i], true));
+			values.add("" + getCompositeScoreFor(official, Position.values()[i], true));
+			values.add("" + getRankingFor(official, Position.values()[i]));			
+		}
+		
+		return values.toArray(new String[0]);
+	}
+	
 	private static String[] getMailMergeHeaders() {
 		String[] headers = {"Name", "E-mail", "Tier", "Rank", "R Rank", "U Rank", "HL Rank", "LJ Rank", "HL/LJ Rank", "BJ Rank"}; 
 		return headers;
 	}
+	
+	
 	
 	private static void readPartPoints(String fileName, Map<String, Official> officials) {
 		try {
