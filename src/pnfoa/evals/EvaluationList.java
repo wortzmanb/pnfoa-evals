@@ -15,20 +15,39 @@ public class EvaluationList implements Iterable<Evaluation> {
 	private Map<Integer, Evaluation> evals;
 	private double average;
 	private boolean isAverageStale;
-
+	
+	private Map<Official, Map<Position, Double>> officialAverages;
+	
 	private EvaluationList() {
 		evals = new HashMap<>();
+		officialAverages = new HashMap<>();
 	}
 
-	public void add(Evaluation e) { isAverageStale = true; evals.put(e.getId(), e);	}
 	public boolean contains(Evaluation e) { return containsId(e.getId()); }
 	public boolean containsId(int id) { return evals.containsKey(id); }
 	public Evaluation get(int id) { return evals.get(id); }
 	public boolean isEmpty() { return evals.isEmpty(); }
 	public Iterator<Evaluation> iterator() { return evals.values().iterator(); }
 	public List<Evaluation> asList() { return new ArrayList(evals.values()); }
-	public Evaluation remove(Evaluation e) { isAverageStale = true; return evals.remove(e.getId()); }
 	public int size() { return evals.size(); }
+
+	public void add(Evaluation e) { 
+		breakAverages(e);
+		evals.put(e.getId(), e);	
+	}
+
+	public Evaluation remove(Evaluation e) { 
+		breakAverages(e);
+		isAverageStale = true; 
+		return evals.remove(e.getId()); 
+	}
+	
+	private void breakAverages(Evaluation e) {
+		isAverageStale = true; 
+		if (officialAverages.containsKey(e.getOfficial()) && officialAverages.get(e.getOfficial()).containsKey(e.getPosition())) {
+			officialAverages.get(e.getOfficial()).put(e.getPosition(), Double.NaN);
+		}
+	}
 
 	public void removeIf(Predicate<? super Evaluation> filter) {
 		Iterator<Evaluation> iter = iterator();
@@ -51,20 +70,39 @@ public class EvaluationList implements Iterable<Evaluation> {
 							   			.filter((Evaluation e) -> e.getEvaluator().equals(o)).collect(Collectors.toList()), adjusted);
 	}
 	
-	public double getAverageReceivedBy(Official o, boolean adjusted) {
-		return getAverage(evals.values().stream()
-										.filter((Evaluation e) -> e.getOfficial().equals(o)).collect(Collectors.toList()), adjusted);
-	}
-	
 	public double getAverageReceivedBy(Official o, Position pos, boolean adjusted) {
-		if (pos == null) {
-			return getAverageReceivedBy(o, adjusted);
+		// don't cache unadjusted averages
+		if (!adjusted) {
+			if (pos == null) {
+				return getAverage(evals.values().stream()
+						.filter((Evaluation e) -> e.getOfficial().equals(o))
+						.collect(Collectors.toList()), adjusted);			
+			} else {
+				return getAverage(evals.values().stream()
+						.filter((Evaluation e) -> e.getOfficial().equals(o))
+						.filter((Evaluation e) -> e.getPosition().matches(pos))
+						.collect(Collectors.toList()), adjusted);
+			}			
 		}
-		return getAverage(evals.values().stream()
-										.filter((Evaluation e) -> e.getOfficial().equals(o))
-										.filter((Evaluation e) -> e.getPosition().matches(pos))
-										.collect(Collectors.toList()), adjusted);
-					
+		
+		if (!officialAverages.containsKey(o)) {
+			 officialAverages.put(o, new HashMap<>());
+		}
+		if (!officialAverages.get(o).containsKey(pos) || officialAverages.get(o).get(pos) == Double.NaN) {
+			double value;
+			if (pos == null) {
+				value = getAverage(evals.values().stream()
+						.filter((Evaluation e) -> e.getOfficial().equals(o))
+						.collect(Collectors.toList()), adjusted);			
+			} else {
+				value = getAverage(evals.values().stream()
+						.filter((Evaluation e) -> e.getOfficial().equals(o))
+						.filter((Evaluation e) -> e.getPosition().matches(pos))
+						.collect(Collectors.toList()), adjusted);
+			}
+			officialAverages.get(o).put(pos, value);
+		}
+		return officialAverages.get(o).get(pos);
 	}
 	
 	public double getAdjustmentFor(Official o) {
@@ -73,10 +111,10 @@ public class EvaluationList implements Iterable<Evaluation> {
 	
 	private double getAverage(Collection<Evaluation> c, boolean adjusted) {
 		try {
-		return c.stream()
-				.mapToDouble((Evaluation e) -> (e.getCompositeScore() + (adjusted ? getAdjustmentFor(e.getEvaluator()) : 0)))
-				.average()
-				.getAsDouble();
+			return c.stream()
+					.mapToDouble((Evaluation e) -> (e.getCompositeScore() + (adjusted ? getAdjustmentFor(e.getEvaluator()) : 0)))
+					.average()
+					.getAsDouble();
 		} catch (NoSuchElementException e) {
 			return 0.0;
 		}

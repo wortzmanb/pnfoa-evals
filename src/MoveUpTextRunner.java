@@ -1,12 +1,13 @@
 import java.io.*;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import pnfoa.evals.*;
 import pnfoa.util.CSVParser;
 import com.opencsv.*;
 
 public class MoveUpTextRunner {
-	public static final String DIRECTORY = "C:\\Users\\bwort\\OneDrive\\PNFOA Board\\2017-18 - Evaluations\\2018 Move-up Meeting";
+	public static final String DIRECTORY = "D:\\OneDrive\\PNFOA Board\\2017-18 - Evaluations\\2018 Move-up Meeting\\February";
 
 	public static final double PART_POINTS_MAX = 100;
 	public static final double EVAL_MAX = 9;
@@ -19,6 +20,8 @@ public class MoveUpTextRunner {
 	private Map<String, Official> officials;
 	private Map<Integer, Game> games;
 	private EvaluationList evals;
+	
+	private Map<Position, List<Official>> rankings;
 	
 	public static void main(String[] args) {
 		Scanner kb = new Scanner(System.in);
@@ -45,7 +48,7 @@ public class MoveUpTextRunner {
 		readTestScores(directoryName + "\\Test.csv", officials);
 		
 		Official brett = officials.get("Wortzman, Brett");
-		runner.printOutputFor(brett);
+		runner.printOutputFor(brett, evals);
 		
 		// Export composite evals
 		System.out.print("Export composite evaluations? ");
@@ -108,7 +111,7 @@ public class MoveUpTextRunner {
 	}
 	
 	private double getCompositeScoreFor(Official o, boolean adjusted) {
-		return getCompositeScore(o.getParticipationPoints(), o.getTestScore(), evals.getAverageReceivedBy(o, adjusted), o.getEvalPenalty());
+		return getCompositeScore(o.getParticipationPoints(), o.getTestScore(), evals.getAverageReceivedBy(o, null, adjusted), o.getEvalPenalty());
 	}
 	
 	private double getCompositeScoreFor(Official o, Position pos, boolean adjusted) {
@@ -120,11 +123,26 @@ public class MoveUpTextRunner {
 			   ((evals - penalty) / EVAL_MAX * EVAL_WEIGHT);
 	}
 	
-	private void printOutputFor(Official o) {
+	private List<Official> getRankings(Position pos, boolean adjusted) {
+		if (rankings == null) {
+			rankings = new HashMap<>();
+		}
+		if (!rankings.containsKey(pos)) {
+			List<Official> ranks = new ArrayList<>();
+			ranks.addAll(this.officials.values());
+			
+			rankings.put(pos, ranks.stream().filter((Official o) -> o.getNumGamesWorked(Level.Varsity, pos) > 0)
+								 .sorted((Official o1, Official o2) -> Double.compare(getCompositeScoreFor(o2, pos, adjusted), getCompositeScoreFor(o1, pos, adjusted)))
+								 .collect(Collectors.toList()));
+		}
+		return rankings.get(pos);
+	}
+	
+	private void printOutputFor(Official o, EvaluationList evals) {
 		System.out.println(o + ": ");
 		System.out.println("   " + o.getNumGamesWorked() + " games worked");
 		System.out.println("       " + o.getGamesWorked());
-		System.out.println("   " + o.getNumEvalsReceived() + " evals received (average = " + evals.getAverageReceivedBy(o, false));
+		System.out.println("   " + o.getNumEvalsReceived() + " evals received (average = " + evals.getAverageReceivedBy(o, null, false));
 		System.out.println("       " + o.getEvalsReceived());
 		System.out.println("   " + o.getNumEvalsGiven() + " evals given (average = " + evals.getAverageGivenBy(o, false));
 		System.out.println("       " + o.getEvalsGiven());
@@ -134,18 +152,44 @@ public class MoveUpTextRunner {
 		System.out.println("       Adjustment: " + evals.getAdjustmentFor(o));
 		System.out.println("  Test score: " + o.getTestScore());
 		System.out.println("  Participation points: " + o.getParticipationPoints());
-		System.out.println("  Eval average: " + evals.getAverageReceivedBy(o, false));
+		System.out.println("  Unadj. Eval average: " + evals.getAverageReceivedBy(o, null, false));
+		System.out.println("  Adj. Eval average: " + evals.getAverageReceivedBy(o, null, true));
 		System.out.println("  Late penalty: " + o.getEvalPenalty());
-		System.out.println("  Unadj. COMPOSITE SCORE: " + getCompositeScoreFor(o, true));
+		System.out.println("  Adj. COMPOSITE SCORE: " + getCompositeScoreFor(o, true));
 		System.out.println();
-//		System.out.println("  RANKINGS:");
-//		System.out.println("    Overall: " + o.getRank(true) + "/" + Official.getNumRanked(true));
-//		System.out.println("    Referee: " + o.getRank(Position.Referee, true) + "/" + Official.getNumRanked(Position.Referee, true));
-//		System.out.println("    Umpire: " + o.getRank(Position.Umpire, true) + "/" + Official.getNumRanked(Position.Umpire, true));
-//		System.out.println("    Head Linesman: " + o.getRank(Position.HeadLinesman, true) + "/" + Official.getNumRanked(Position.HeadLinesman, true));
-//		System.out.println("    Line Judge: " + o.getRank(Position.LineJudge, true) + "/" + Official.getNumRanked(Position.LineJudge, true));
-//		System.out.println("    Back Judge: " + o.getRank(Position.BackJudge, true) + "/" + Official.getNumRanked(Position.BackJudge, true));
-//		System.out.println("    HL/LJ: " + o.getRank(Position.HL_LJ, true) + "/" + Official.getNumRanked(Position.HL_LJ, true));
+		
+		System.out.println("  POSITION RATINGS:");
+		printRatings(o, null);
+		printRatings(o, Position.Referee);
+		printRatings(o, Position.Umpire);
+		printRatings(o, Position.HeadLinesman);
+		printRatings(o, Position.LineJudge);
+		printRatings(o, Position.BackJudge);
+		printRatings(o, Position.HL_LJ);
+		
+		System.out.println("  RANKINGS:");
+		printRankings(o, null);
+		printRankings(o, Position.Referee);
+		printRankings(o, Position.Umpire);
+		printRankings(o, Position.HeadLinesman);
+		printRankings(o, Position.LineJudge);
+		printRankings(o, Position.BackJudge);
+		printRankings(o, Position.HL_LJ);
+	}
+	
+	private void printRatings(Official o, Position pos) {
+		System.out.printf("     %s: %f - %f (%d games)\n", pos == null ? "Overall" : pos, evals.getAverageReceivedBy(o, pos, true), getCompositeScoreFor(o, pos, true), o.getNumGamesWorked(Level.Varsity, pos));
+	}
+	
+	private void printRankings(Official o, Position pos) {
+		List<Official> ranks = getRankings(pos, true);
+		System.out.printf("     %s: %d/%d\n", pos == null ? "Overall" : pos, getRankingFor(o, pos), ranks.size());
+	}
+	
+	private int getRankingFor(Official o, Position pos) {
+		List<Official> ranks = getRankings(pos, true);
+		int rank = ranks.indexOf(o);
+		return (rank < 0 ? Integer.MAX_VALUE : rank + 1);
 	}
 	
 	private static String[] getEvalsCsvOutput(Evaluation eval) {
@@ -180,14 +224,12 @@ public class MoveUpTextRunner {
 		List<String> values = new ArrayList<>();
 		values.add("" + official.getName());
 		values.add("" + official.getTier());
-//		values.add("" + official.getRank(true));
-//		values.add("" + official.getTierRank(true));
 		values.add("" + official.getNumGamesWorked());
 		values.add("" + official.getNumGamesWorked(Level.Varsity));
 		values.add("" + getCompositeScoreFor(official, true));
 		values.add("" + official.getParticipationPoints());
 		values.add("" + official.getTestScore());
-		values.add("" + evals.getAverageReceivedBy(official, true));
+		values.add("" + evals.getAverageReceivedBy(official, null, true));
 		values.add("" + official.getEvalPenalty());
 		
 		return values.toArray(new String[0]);
@@ -203,13 +245,13 @@ public class MoveUpTextRunner {
 		values.add("" + official.getName());
 		values.add("" + official.getEmail());
 		values.add("" + official.getTier());
-//		values.add("" + official.getRank(true));
-//		values.add("" + official.getRank(Position.Referee, true));
-//		values.add("" + official.getRank(Position.Umpire, true));
-//		values.add("" + official.getRank(Position.HeadLinesman, true));
-//		values.add("" + official.getRank(Position.LineJudge, true));
-//		values.add("" + official.getRank(Position.HL_LJ, true));
-//		values.add("" + official.getRank(Position.BackJudge, true));
+		values.add("" + getRankingFor(official, null));
+		values.add("" + getRankingFor(official, Position.Referee));
+		values.add("" + getRankingFor(official, Position.Umpire));
+		values.add("" + getRankingFor(official, Position.HeadLinesman));
+		values.add("" + getRankingFor(official, Position.LineJudge));
+		values.add("" + getRankingFor(official, Position.HL_LJ));
+		values.add("" + getRankingFor(official, Position.BackJudge));
 		
 		return values.toArray(new String[0]);
 	}

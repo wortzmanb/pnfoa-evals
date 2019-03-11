@@ -156,6 +156,8 @@ public class Official implements Comparable<Official> {
 //	}
 	
 	public Collection<Game> getGamesWorked(Position pos) { 
+		if (pos == null) return getGamesWorked();
+		
 		return this.gamesWorked == null ? null : 
 			   this.gamesWorked.entrySet().stream()
 				.filter(ent -> ent.getValue().matches(pos))
@@ -163,7 +165,9 @@ public class Official implements Comparable<Official> {
 				.collect(Collectors.toList()); 
 	}
 	
-	public Collection<Game> getGamesWorked(Level l) { 
+	public Collection<Game> getGamesWorked(Level l) {
+		if (l == null) return getGamesWorked();
+		
 		return this.gamesWorked == null ? null :
 			   this.gamesWorked.entrySet().stream()
 				.filter(ent -> ent.getKey().getLevel() == l)
@@ -171,7 +175,10 @@ public class Official implements Comparable<Official> {
 				.collect(Collectors.toList()); 
 	}
 
-	public Collection<Game> getGamesWorked(Level l, Position pos) { 
+	public Collection<Game> getGamesWorked(Level l, Position pos) {
+		if (l == null) return getGamesWorked(pos);
+		if (pos == null) return getGamesWorked(l);
+		
 		return this.gamesWorked == null ? null :
 			   this.gamesWorked.entrySet().stream()
 				.filter(ent -> ent.getKey().getLevel() == l)
