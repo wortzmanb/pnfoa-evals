@@ -71,7 +71,7 @@ public class MoveUpTextRunner {
 		System.out.print("Export rankings summary? ");
 		if (kb.next().toLowerCase().startsWith("y")) {
 			try {
-				CSVWriter writer = new CSVWriter(new FileWriter(DIRECTORY + "\\GeneratedRankings.csv"));
+				CSVWriter writer = new CSVWriter(new FileWriter(DIRECTORY + "\\SummarizedRankings.csv"));
 				writer.writeNext(getSummaryCsvHeaders());
 				for (Official o : officials.values()) {
 					writer.writeNext(runner.getSummaryCsvOutput(o));
@@ -112,6 +112,19 @@ public class MoveUpTextRunner {
 				}
 
 				writer.close();
+			} catch (IOException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+		}
+		
+		// Export ranking list
+		System.out.print("Export ranking list? ");
+		if (kb.next().toLowerCase().startsWith("y")) {		
+			try {
+				PrintStream output = new PrintStream(new File(DIRECTORY + "\\Rankings.txt"));
+				runner.outputRankingsFile(output);
+				output.close();
 			} catch (IOException e1) {
 				// TODO Auto-generated catch block
 				e1.printStackTrace();
@@ -259,22 +272,6 @@ public class MoveUpTextRunner {
 		return headers;
 	}
 	
-	private String[] getMailMergeOutput(Official official) {
-		List<String> values = new ArrayList<>();
-		values.add("" + official.getName());
-		values.add("" + official.getEmail());
-		values.add("" + official.getTier());
-		values.add("" + getRankingFor(official, null));
-		values.add("" + getRankingFor(official, Position.Referee));
-		values.add("" + getRankingFor(official, Position.Umpire));
-		values.add("" + getRankingFor(official, Position.HeadLinesman));
-		values.add("" + getRankingFor(official, Position.LineJudge));
-		values.add("" + getRankingFor(official, Position.HL_LJ));
-		values.add("" + getRankingFor(official, Position.BackJudge));
-		
-		return values.toArray(new String[0]);
-	}
-	
 	private static String[] getFullRankingsHeaders() {
 		String[] headers = {"Name", "Tier", "Test", "Part. Points", 
 							"Overall Eval.", "Adjusted Eval.", "Overall Comp.", "Overall Rank", 
@@ -312,7 +309,50 @@ public class MoveUpTextRunner {
 		return headers;
 	}
 	
+	private String[] getMailMergeOutput(Official official) {
+		List<String> values = new ArrayList<>();
+		values.add("" + official.getName());
+		values.add("" + official.getEmail());
+		values.add("" + official.getTier());
+		values.add("" + getRankingFor(official, null));
+		values.add("" + getRankingFor(official, Position.Referee));
+		values.add("" + getRankingFor(official, Position.Umpire));
+		values.add("" + getRankingFor(official, Position.HeadLinesman));
+		values.add("" + getRankingFor(official, Position.LineJudge));
+		values.add("" + getRankingFor(official, Position.HL_LJ));
+		values.add("" + getRankingFor(official, Position.BackJudge));
+		
+		return values.toArray(new String[0]);
+	}
 	
+	private void outputRankingsFile(PrintStream outFile) {
+		outFile.println("Overall:");
+		List<Official> ranks = getRankings(null, true);
+		
+		// output overall rankings
+		for (int i = 0; i < ranks.size(); i++) {
+			Official o = ranks.get(i);
+			if (getRankingFor(o, null) != Integer.MAX_VALUE)
+				outFile.printf("%s\n", o.getName());
+		}
+		outFile.println();
+		outFile.println();
+		
+		// output positional rankings
+		for (int posNum = 0; posNum < 6; posNum++) {
+			Position pos = Position.values()[posNum];
+			ranks = getRankings(pos, true);
+			
+			outFile.println(pos + ":");
+			for (int i = 0; i < ranks.size(); i++) {
+				Official o = ranks.get(i);
+				if (getRankingFor(o, null) != Integer.MAX_VALUE)
+					outFile.printf("%s\n", ranks.get(i).getName());
+			}
+			outFile.println();
+			outFile.println();
+		}
+	}
 	
 	private static void readPartPoints(String fileName, Map<String, Official> officials) {
 		try {
