@@ -107,6 +107,11 @@ public class Game implements Comparable<Game> {
 				}
 				Official official = officials.get(lastName + ", " + firstName);
 				game.addOfficial(official, record.get("PositionName"));
+				
+				// give training points for scrimmages
+				if (game.getLevel() == Level.Scrimmage) {
+					official.addSummerTraining();
+				}
 			}		
 		} catch (FileNotFoundException e) {
 			// TODO Auto-generated catch block

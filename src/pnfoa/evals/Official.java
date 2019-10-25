@@ -17,10 +17,12 @@ public class Official implements Comparable<Official> {
 	private Collection<Evaluation> evalsReceived;
 	private int partPoints;
 	private double testScore;
+	private int[] trainPoints;		// 0 = summer, 1 = meetings, 2 = RTO
 
 	private Map<Ranking, Integer> ranks;
 	
 	public static final int MIN_GAMES_TO_RANK = 3;
+	public static final int MEETING_MAX = 4;
 	
 	private static List<Official> allOfficials;
 	private static Map<Ranking, Integer> rankCounts;
@@ -35,6 +37,7 @@ public class Official implements Comparable<Official> {
 		this.lastName = lastName;
 		this.email = email;
 		this.tier = Tier.parse(tier);
+		this.trainPoints = new int[3];
 		allOfficials.add(this);
 		
 		this.ranks = new EnumMap<>(Ranking.class);
@@ -51,7 +54,8 @@ public class Official implements Comparable<Official> {
 		}
 		
 		gamesWorked.put(g, p);
-		addPartPoints(g.getPartPointsFor(getTier()));
+		if (g.getDate().getYear() == LocalDateTime.now().getYear())
+			addPartPoints(g.getPartPointsFor(getTier()));
 		breakOrdering();
 	}
 	
@@ -75,6 +79,19 @@ public class Official implements Comparable<Official> {
 		partPoints += points;
 		partPoints = Math.min(partPoints, 100);
 		breakOrdering();
+	}
+	
+	public void addSummerTraining() {
+		trainPoints[0] = 1;
+	}
+	
+	public void addMeeting() {
+		if (trainPoints[1] < MEETING_MAX)
+			trainPoints[1]++;
+	}
+	
+	public void addRTO() {
+		trainPoints[2] = 1;
 	}
 	
 	public void setTestScore(double score) {
@@ -215,6 +232,7 @@ public class Official implements Comparable<Official> {
 	public int getNumEvalsReceived() { return this.evalsReceived == null ? 0 : this.evalsReceived.size(); }
 	public int getParticipationPoints() { return this.partPoints; }
 	public double getTestScore() { return this.testScore; }
+	public int getTrainingPoints() { return Arrays.stream(this.trainPoints).sum(); }
 	
 	public static int getNumRanked(boolean adjusted) { return rankCounts.get(Ranking.getValue(null, adjusted)); }
 	public static int getNumRanked(Position p, boolean adjusted) { return rankCounts.get(Ranking.getValue(p, adjusted)); }

@@ -8,10 +8,10 @@ import pnfoa.evals.*;
 import pnfoa.util.*;
 
 public class PlayoffTextRunner {
-	public static final String DIRECTORY = "C:\\Users\\bwort\\OneDrive\\PNFOA Board\\2017-18 - Evaluations\\2018 Playoff Meeting";
+	public static final String DIRECTORY = "C:\\Users\\bwort\\OneDrive\\PNFOA Board\\2017-18 - Evaluations\\2019 Playoff Meeting";
 	
-	private static final LocalDateTime PREV_WEEK6 = LocalDateTime.of(2017, 10, 5, 0, 0, 0);
-	private static final LocalDateTime PREV_WEEK10 = LocalDateTime.of(2017, 11, 5, 0, 0, 0);
+	private static final LocalDateTime PREV_WEEK6 = LocalDateTime.of(2018, 10, 4, 0, 0, 0);
+	private static final LocalDateTime PREV_WEEK10 = LocalDateTime.of(2018, 11, 4, 0, 0, 0);
 	private static final boolean V1_EVALS_ONLY = false;
 	
 	public static void main(String[] args) {
@@ -37,6 +37,7 @@ public class PlayoffTextRunner {
 		
 		readPartPoints(directoryName + "\\Participation.csv", officials);
 		readTestScores(directoryName + "\\Test.csv", officials);
+		readTrainingPoints(directoryName + "\\Training.csv", officials);
 		
 		oldGames.entrySet().removeIf((Map.Entry<Integer, Game> e) -> e.getValue().getDate().isBefore(PREV_WEEK6));
 		oldEvals.removeIf((Evaluation e) -> e.getGame().getDate().isBefore(PREV_WEEK6));
@@ -48,10 +49,11 @@ public class PlayoffTextRunner {
 			evals.removeIf((Evaluation e) -> e.getEvaluator().getTier() != Tier.V1);
 		}
 		
-		Official brett = officials.get("Schomburg, Brooks");
+		Official brett = officials.get("Wortzman, Brett");
 		System.out.println(brett + ": ");
 		System.out.println("  Test score: " + brett.getTestScore());
 		System.out.println("  Participation points: " + brett.getParticipationPoints());
+		System.out.println("  Training points: " + brett.getTrainingPoints());
 		System.out.println("  Current Adjustment: " + evals.getAdjustmentFor(brett));
 		System.out.println("  Prev Adjustment: " + oldEvals.getAdjustmentFor(brett));
 		System.out.println("  Current Positional Scores: ");
@@ -75,6 +77,31 @@ public class PlayoffTextRunner {
 
 		System.out.println();
 		
+		// Export composite evals
+		System.out.print("Export composite evaluations? ");
+		if (kb.next().toLowerCase().startsWith("y")) {
+			try {
+				CSVWriter writer = new CSVWriter(new FileWriter(DIRECTORY + "\\CompositeEvals.csv"));
+				writer.writeNext(getEvalsCsvHeaders());
+				for (Evaluation e : evals) {
+					writer.writeNext(getEvalsCsvOutput(e));
+				}
+
+				writer.close();
+				
+				writer = new CSVWriter(new FileWriter(DIRECTORY + "\\PrevCompositeEvals.csv"));
+				writer.writeNext(getEvalsCsvHeaders());
+				for (Evaluation e : oldEvals) {
+					writer.writeNext(getEvalsCsvOutput(e));
+				}
+
+				writer.close();				
+			} catch (IOException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+		}		
+		
 		// Export full rankings
 		System.out.print("Export full rankings? ");
 		if (kb.next().toLowerCase().startsWith("y")) {
@@ -85,6 +112,7 @@ public class PlayoffTextRunner {
 				CSVWriter hlWriter = new CSVWriter(new FileWriter(DIRECTORY + "\\Rankings_HeadLines" + (V1_EVALS_ONLY ? "_V1" : "")  + ".csv"));
 				CSVWriter ljWriter = new CSVWriter(new FileWriter(DIRECTORY + "\\Rankings_LineJudge" + (V1_EVALS_ONLY ? "_V1" : "")  + ".csv"));
 				CSVWriter bjWriter = new CSVWriter(new FileWriter(DIRECTORY + "\\Rankings_BackJudge" + (V1_EVALS_ONLY ? "_V1" : "")  + ".csv"));
+				overallWriter.writeNext(getCsvHeaders());
 				refWriter.writeNext(getCsvHeaders());
 				umpWriter.writeNext(getCsvHeaders());
 				hlWriter.writeNext(getCsvHeaders());
@@ -111,6 +139,7 @@ public class PlayoffTextRunner {
 			}
 		}		
 
+		System.out.println("Done!");
 		kb.close();
     }
 	
@@ -133,15 +162,17 @@ public class PlayoffTextRunner {
 		if (prevScore == 0) prevScore = currScore;
 		
 		double partPoints = o.getParticipationPoints();
+		double trainPoints = o.getTrainingPoints();
 		
 		double compEval = (prevScore * 5.0 / 12.0 + currScore * 7.0 / 12.0);
 		double partScore = Math.min(1.0, partPoints / 58.0);
+		double trainScore = Math.min(1.0,  trainPoints / 6);
 		
-		return 0.9 * (compEval / 9.0) + 0.1 * partScore;
+		return 0.8 * (compEval / 9.0) + 0.1 * partScore + 0.1 * trainScore;
 	}
 	
 	private static String[] getCsvHeaders() {
-		String[] headers = {"Name", "Tier", "Test Score", "Varsity Games", "Games @ Pos", "Part. Points", "2017 Eval. Avg.", "2018 Eval. Avg.", "Composite Score"}; 
+		String[] headers = {"Name", "Tier", "Test Score", "Varsity Games", "Games @ Pos", "Part. Points", "Train. Points", "Raw Prev. Eval. Avg.", "Adj. Prev. Eval. Avg.", "Raw Curr. Eval. Avg.", "Adj. Curr. Eval. Avg.", "Composite Score"}; 
 		return headers;
 	}	
 	
@@ -153,11 +184,42 @@ public class PlayoffTextRunner {
 		values.add("" + getNumVarsityGamesFor(official, games));
 		values.add("" + getNumVarsityGamesFor(official, p, games));
 		values.add("" + official.getParticipationPoints());
+		values.add("" + official.getTrainingPoints());
+		values.add("" + oldEvals.getAverageReceivedBy(official, p, false));
 		values.add("" + oldEvals.getAverageReceivedBy(official, p, true));
+		values.add("" + evals.getAverageReceivedBy(official, p, false));
 		values.add("" + evals.getAverageReceivedBy(official, p, true));
 		values.add("" + getCompositeScore(official, p, true, evals, oldEvals));
 		
 		return values.toArray(new String[0]);
+	}
+	
+	private static String[] getEvalsCsvOutput(Evaluation eval) {
+		List<String> values = new ArrayList<>();
+		values.add("" + eval.getId());
+		values.add("" + eval.getDate());
+		values.add("" + eval.getGame());
+		values.add("" + eval.getEvaluator());
+		values.add("" + eval.getOfficial());
+		values.add("" + eval.getCompositeScore());
+		values.add("" + eval.isLate());
+		for (String crit : Evaluation.critWeights.keySet()) {
+			values.add("" + eval.getScores().get(crit));
+			values.add(eval.getComments().get(crit));
+		}
+		values.add(eval.getComments().get("Summary"));		
+		return values.toArray(new String[0]);
+	}
+	
+	private static String[] getEvalsCsvHeaders() {
+		List<String> headers = new ArrayList<>();
+		headers.addAll(Arrays.asList(new String[]{"Id", "Date", "Game", "Evaluator", "Official", "Composite Score", "Late?"}));
+		for (String crit : Evaluation.critWeights.keySet()) {
+			headers.add(crit + " Score");
+			headers.add(crit + " Comment");
+		}
+		headers.add("Summary Comment");
+		return headers.toArray(new String[0]);
 	}	
 	
 	private static void readPartPoints(String fileName, Map<String, Official> officials) {
@@ -187,7 +249,7 @@ public class PlayoffTextRunner {
 				Map<String, String> record = parser.nextRecord();
 				if (record == null) continue;
 				
-				Official official = officials.get(record.get("Official Name"));
+				Official official = officials.get(record.get("Official Name").trim());
 				if (official == null) continue;
 				
 				String strScore1 = record.get("Test Score");
@@ -203,4 +265,42 @@ public class PlayoffTextRunner {
 			e.printStackTrace();
 		}
 	}	
+	
+	private static void readTrainingPoints(String fileName, Map<String, Official> officials) {
+		try {
+			CSVParser parser = new CSVParser(fileName);
+			
+			while (parser.hasNextRecord()) {
+				Map<String, String> record = parser.nextRecord();
+				if (record == null) continue;
+				
+				Official official = officials.get(record.get("Last") + ", " + record.get("First"));
+				if (official == null) continue;
+				
+				String summer = record.get("Summer");
+				int summerScore = (summer == null || summer.isEmpty() ? 0 : Integer.parseInt(summer));
+				if (summerScore > 0) {
+					// training point for first summer meeting, participation points for each other
+					official.addSummerTraining();
+					official.addPartPoints(5 * (summerScore - 1));
+				}
+								
+				String rto = record.get("RTO");
+				int rtoScore = (rto == null || rto.isEmpty() ? 0 : Integer.parseInt(rto));
+				if (rtoScore > 0) {
+					official.addRTO();
+				}
+				
+				for (int meet = 1; meet <= 6; meet++) {
+					String meeting = record.get("Meeting" + meet);
+					if (!meeting.trim().isEmpty()) {
+						official.addMeeting();
+					}
+				}
+			}
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
 }
