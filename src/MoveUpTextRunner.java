@@ -7,7 +7,7 @@ import pnfoa.util.CSVParser;
 import com.opencsv.*;
 
 public class MoveUpTextRunner {
-	public static final String DIRECTORY = "C:\\Users\\brettwo\\OneDrive\\PNFOA Board\\2017-18 - Evaluations\\2018 Move-up Meeting";
+	public static final String DIRECTORY = "C:\\Users\\bwort\\OneDrive\\PNFOA Board\\2017-18 - Evaluations\\2018 Move-up Meeting";
 
 	public static final double PART_POINTS_MAX = 100;
 	public static final double EVAL_MAX = 9;
@@ -161,7 +161,7 @@ public class MoveUpTextRunner {
 			List<Official> ranks = new ArrayList<>();
 			ranks.addAll(this.officials.values());
 			
-			rankings.put(pos, ranks.stream().filter((Official o) -> o.getNumGamesWorked(Level.Varsity, pos) > 0)
+			rankings.put(pos, ranks.stream().filter((Official o) -> o.getNumGamesWorked(Level.Varsity, pos) >= 3)
 								 .sorted((Official o1, Official o2) -> Double.compare(getCompositeScoreFor(o2, pos, adjusted), getCompositeScoreFor(o1, pos, adjusted)))
 								 .collect(Collectors.toList()));
 		}

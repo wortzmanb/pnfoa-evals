@@ -16,14 +16,22 @@ public class Game implements Comparable<Game> {
 	private LocalDateTime date;
 	private Level level;
 	private Map<Position, Collection<Official>> officials;
+	
+	private static final String[] dateFormats = {"M/d/yyyy h:mm:ss a", "M/d/yyyy H:mm", "M d yyyy h:mma", "M/d/yyyy"};
 
 	public Game(int id, String loc, String home, String away, String date, String level) throws ParseException {
 		this.id = id;
 		this.location = loc;
 		this.homeTeam = home;
 		this.awayTeam = away;
-		DateTimeFormatter df = DateTimeFormatter.ofPattern("M/d/yyyy H:mm");
-		this.date = LocalDateTime.parse(date, df);
+		for (String form : dateFormats) {
+			try {
+				DateTimeFormatter df = DateTimeFormatter.ofPattern(form);
+				this.date = LocalDateTime.parse(date, df);
+				break;
+			} catch (DateTimeParseException e) { }
+		}
+		if (this.date == null) throw new IllegalStateException();
 		this.level = Level.parse(level);
 	}
 	
@@ -113,6 +121,7 @@ public class Game implements Comparable<Game> {
 	}
 	
 	public String getDateString() {
+		if (date == null) return "";
 		String day = date.getDayOfWeek().toString().substring(0, 3).toLowerCase();
 		day = day.substring(0, 1).toUpperCase() + day.substring(1);
 		return day + " " + date.format(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM)); 
@@ -126,6 +135,7 @@ public class Game implements Comparable<Game> {
 	public Collection<Official> getOfficials(Position pos) { return officials.get(pos) == null ? new ArrayList<Official>() : officials.get(pos); }
 	public Map<Position, Collection<Official>> getOfficials() { return officials; }
 	public Position getPositionOf(Official official) {
+		if (officials == null) return null;
 		for (Position pos : officials.keySet()) {
 			if (officials.get(pos).contains(official)) {
 				return pos;

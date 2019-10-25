@@ -247,13 +247,13 @@ public class Official implements Comparable<Official> {
 				Map<String, String> record = parser.nextRecord();
 				if (record == null) continue;
 				
-				String firstName = record.get("FName");
-				String lastName = record.get("LName");
+				String firstName = record.get("FirstName");
+				String lastName = record.get("LastName");
 				String fullName = lastName + ", " + firstName;
 				
 				if (!officials.containsKey(fullName)) {
 					officials.put(fullName, 
-								  new Official(firstName, lastName, record.get("Email1"), record.get("MiscFieldValue1")));
+								  new Official(firstName, lastName, record.get("Email"), record.get("Classification")));
 				}
 			}
 		} catch (FileNotFoundException e) {

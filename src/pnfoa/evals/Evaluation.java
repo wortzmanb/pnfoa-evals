@@ -8,7 +8,7 @@ import java.time.temporal.*;
 
 public class Evaluation implements Comparable<Evaluation> {
 	public static final Map<String, Double> critWeights;
-	private static final LocalDateTime FIRST_DUE = LocalDateTime.of(2018, 9, 13, 23, 59, 59);
+	private static final LocalDateTime FIRST_DUE = LocalDateTime.of(2019, 9, 11, 23, 59, 59);
 	
 	private int id;
 	private Game game;

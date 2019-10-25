@@ -170,6 +170,12 @@ public class EvaluationList implements Iterable<Evaluation> {
 					continue;
 				}
 				
+				// don't count evaluations from non-Varsity games or Crew games
+				if (game.getLevel() != Level.Varsity) {
+					System.out.println("Skipping non-Varsity evaluation: " + eval);
+					continue;
+				}
+				
 				if (evaluator.getEvalsGiven() == null || !evaluator.getEvalsGiven().contains(eval)) 
 					evaluator.addEvalGiven(eval);
 				if (official.getEvalsReceived() == null || !official.getEvalsReceived().contains(eval))
