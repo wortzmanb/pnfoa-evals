@@ -142,6 +142,27 @@ public class EvaluationList implements Iterable<Evaluation> {
 				Position position = Position.parse(record.get("Position_Worked"));
 				Game game = games.get(Integer.parseInt(record.get("GameID")));
 				
+				// don't count evaluations from Apprentices
+				if (EvaluationList.SKIP_APPRENTICES && (evaluator.getTier() == Tier.A1 || evaluator.getTier() == Tier.A2)) {
+					System.out.println("Skipping Apprentice evaluation: " + official + " from " + evaluator + " on game #" + game.getId());
+					continue;
+				}
+				
+				// don't count evaluations from officials not on the crew
+				Position evalPos = game.getPositionOf(evaluator); 
+				if (EvaluationList.SKIP_NON_CREW &&
+					(evalPos != null && evalPos != Position.Referee && evalPos != Position.Umpire && 
+					 evalPos != Position.HeadLinesman && evalPos != Position.LineJudge && evalPos != Position.BackJudge)) {
+					System.out.println("Skipping non-crew evaluation: " + official + " from " + evaluator + " on game #" + game.getId());
+					continue;
+				}
+				
+				// don't count evaluations from non-Varsity games or Crew games
+				if (game.getLevel() != Level.Varsity) {
+					System.out.println("Skipping non-Varsity evaluation: " + official + " from " + evaluator + " on game #" + game.getId());
+					continue;
+				}
+				
 				int id = Integer.parseInt(record.get("Evaluation_ID"));
 				if (!list.containsId(id)) {
 					list.add(new Evaluation(id,
@@ -154,27 +175,6 @@ public class EvaluationList implements Iterable<Evaluation> {
 				Evaluation eval = list.get(id);
 				eval.addScore(record.get("Evaluation_Criteria_Name"), Integer.parseInt(record.get("Criteria_Value")), record.get("Criteria_Comments"));
 				eval.addSummaryComment(record.get("Summary_Comments"));
-				
-				// don't count evaluations from Apprentices
-				if (EvaluationList.SKIP_APPRENTICES && (evaluator.getTier() == Tier.A1 || evaluator.getTier() == Tier.A2)) {
-					System.out.println("Skipping Apprentice evaluation: " + eval);
-					continue;
-				}
-				
-				// don't count evaluations from officials not on the crew
-				Position evalPos = game.getPositionOf(evaluator); 
-				if (EvaluationList.SKIP_NON_CREW &&
-					(evalPos != null && evalPos != Position.Referee && evalPos != Position.Umpire && 
-					 evalPos != Position.HeadLinesman && evalPos != Position.LineJudge && evalPos != Position.BackJudge)) {
-					System.out.println("Skipping non-crew evaluation: " + eval);
-					continue;
-				}
-				
-				// don't count evaluations from non-Varsity games or Crew games
-				if (game.getLevel() != Level.Varsity) {
-					System.out.println("Skipping non-Varsity evaluation: " + eval);
-					continue;
-				}
 				
 				if (evaluator.getEvalsGiven() == null || !evaluator.getEvalsGiven().contains(eval)) 
 					evaluator.addEvalGiven(eval);
