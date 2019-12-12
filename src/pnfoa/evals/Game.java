@@ -82,31 +82,32 @@ public class Game implements Comparable<Game> {
 			while (parser.hasNextRecord()) {
 				Map<String, String> record = parser.nextRecord();
 				if (record == null) continue;
-				int id = Integer.parseInt(record.get("GameID"));
+				if (record.get("Game ID") == null || record.get("Game ID").isEmpty()) continue;
+				int id = Integer.parseInt(record.get("Game ID"));
 				if (!games.containsKey(id)) {
 					games.put(id, new Game(id,
-										   record.get("SiteName"),
-										   record.get("HomeTeams"),
-										   record.get("AwayTeams"),
-										   record.get("FromDate"),
-										   record.get("LevelName")));
+										   record.get("Site Name"),
+										   record.get("Home Teams"),
+										   record.get("Away Teams"),
+										   record.get("From Date"),
+										   record.get("Level Name")));
 				}
 				Game game = games.get(id);
 				
 				// Skip canceled games
-				if (record.get("GameStatus").equals("Canceled")) {
+				if (record.get("Game Status").equals("Canceled")) {
 					System.out.println("Skipping cancelled game: " + game);
 					continue;
 				}				
 				
-				String firstName = record.get("FirstName");
-				String lastName = record.get("LastName");
+				String firstName = record.get("First Name");
+				String lastName = record.get("Last Name");
 				
 				if (!officials.containsKey(lastName + ", " + firstName)) {
 					officials.put(lastName + ", " + firstName, new Official(firstName, lastName));
 				}
 				Official official = officials.get(lastName + ", " + firstName);
-				game.addOfficial(official, record.get("PositionName"));
+				game.addOfficial(official, record.get("Position Name"));
 				
 				// give training points for scrimmages
 				if (game.getLevel() == Level.Scrimmage) {

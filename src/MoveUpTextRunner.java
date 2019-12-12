@@ -7,15 +7,17 @@ import pnfoa.util.CSVParser;
 import com.opencsv.*;
 
 public class MoveUpTextRunner {
-	public static final String DIRECTORY = "C:\\Users\\bwort\\OneDrive\\PNFOA Board\\2017-18 - Evaluations\\2018 Move-up Meeting";
+	public static final String DIRECTORY = "C:\\Users\\bwort\\OneDrive\\PNFOA Board\\2017-18 - Evaluations\\2019 Move-up Meeting";
 
 	public static final double PART_POINTS_MAX = 100;
+	public static final double TRAIN_POINTS_MAX = 7;
 	public static final double EVAL_MAX = 9;
 	public static final double TEST_MAX = 100;
 	
 	public static final double PART_POINTS_WEIGHT = 0.1;
+	public static final double TRAIN_POINTS_WEIGHT = 0.1;
 	public static final double TEST_WEIGHT = 0.2;
-	public static final double EVAL_WEIGHT = 0.7;
+	public static final double EVAL_WEIGHT = 0.6;
 	
 	private Map<String, Official> officials;
 	private Map<Integer, Game> games;
@@ -46,6 +48,7 @@ public class MoveUpTextRunner {
 		
 		readPartPoints(directoryName + "\\Participation.csv", officials);
 		readTestScores(directoryName + "\\Test.csv", officials);
+		readTrainingPoints(directoryName + "\\Training.csv", officials);
 		
 		Official brett = officials.get("Wortzman, Brett");
 		runner.printOutputFor(brett, evals);
@@ -141,14 +144,16 @@ public class MoveUpTextRunner {
 	}
 	
 	private double getCompositeScoreFor(Official o, boolean adjusted) {
-		return getCompositeScore(o.getParticipationPoints(), o.getTestScore(), evals.getAverageReceivedBy(o, null, adjusted), o.getEvalPenalty());
+		return getCompositeScore(o.getParticipationPoints(), o.getTrainingPoints(), o.getTestScore(), evals.getAverageReceivedBy(o, null, adjusted), o.getEvalPenalty());
 	}
 	
 	private double getCompositeScoreFor(Official o, Position pos, boolean adjusted) {
-		return getCompositeScore(o.getParticipationPoints(), o.getTestScore(), evals.getAverageReceivedBy(o, pos, adjusted), o.getEvalPenalty());
+		return getCompositeScore(o.getParticipationPoints(), o.getTrainingPoints(), o.getTestScore(), evals.getAverageReceivedBy(o, pos, adjusted), o.getEvalPenalty());
 	}	
-	private double getCompositeScore(double part, double test, double evals, double penalty) {
-		return (part / PART_POINTS_MAX * PART_POINTS_WEIGHT) + 
+	
+	private double getCompositeScore(double part, double train, double test, double evals, double penalty) {
+		return (part / PART_POINTS_MAX * PART_POINTS_WEIGHT) +
+			   (train / TRAIN_POINTS_MAX * TRAIN_POINTS_WEIGHT) +
 			   (test / TEST_MAX * TEST_WEIGHT) +
 			   ((evals - penalty) / EVAL_MAX * EVAL_WEIGHT);
 	}
@@ -182,6 +187,7 @@ public class MoveUpTextRunner {
 		System.out.println("       Adjustment: " + evals.getAdjustmentFor(o));
 		System.out.println("  Test score: " + o.getTestScore());
 		System.out.println("  Participation points: " + o.getParticipationPoints());
+		System.out.println("  Training points: " + o.getTrainingPoints());
 		System.out.println("  Unadj. Eval average: " + evals.getAverageReceivedBy(o, null, false));
 		System.out.println("  Adj. Eval average: " + evals.getAverageReceivedBy(o, null, true));
 		System.out.println("  Late penalty: " + o.getEvalPenalty());
@@ -258,6 +264,7 @@ public class MoveUpTextRunner {
 		values.add("" + official.getNumGamesWorked(Level.Varsity));
 		values.add("" + getCompositeScoreFor(official, true));
 		values.add("" + official.getParticipationPoints());
+		values.add("" + official.getTrainingPoints());
 		values.add("" + official.getTestScore());
 		values.add("" + evals.getAverageReceivedBy(official, null, true));
 		values.add("" + official.getEvalPenalty());
@@ -268,19 +275,19 @@ public class MoveUpTextRunner {
 	}
 	
 	private static String[] getSummaryCsvHeaders() {
-		String[] headers = {"Name", "Tier", "Games Worked", "Varsity Games Worked", "Composite", "Part. Points", "Test Score", "Eval. Avg.", "Penalty", "Given Avg.", "Adjustment"}; 
+		String[] headers = {"Name", "Tier", "Games Worked", "Varsity Games Worked", "Composite", "Part. Points", "Train. Points", "Test Score", "Eval. Avg.", "Penalty", "Given Avg.", "Adjustment"}; 
 		return headers;
 	}
 	
 	private static String[] getFullRankingsHeaders() {
-		String[] headers = {"Name", "Tier", "Test", "Part. Points", 
+		String[] headers = {"Name", "Tier", "Test", "Part. Points", "Train. Points",
 							"Overall Eval.", "Adjusted Eval.", "Overall Comp.", "Overall Rank", 
 							"R Eval.", "Adjusted Eval.", "R Comp.", "R Rank", 
 							"U Eval.", "Adjusted Eval.", "U Comp.", "U Rank",
 							"HL Eval.", "Adjusted Eval.", "HL Comp.", "HL Rank",
 							"LJ Eval.", "Adjusted Eval.", "LJ Comp.", "LJ Rank", 
-							"HL/LJ Eval.", "Adjusted Eval.", "HL/LJ Comp.", "HL/LJ Rank", 
-							"BJ Eval.", "Adjusted Eval.", "BJ Comp.", "BJ Rank"}; 
+							"BJ Eval.", "Adjusted Eval.", "BJ Comp.", "BJ Rank",
+							"HL/LJ Eval.", "Adjusted Eval.", "HL/LJ Comp.", "HL/LJ Rank"}; 
 		return headers;
 	}
 	
@@ -290,6 +297,7 @@ public class MoveUpTextRunner {
 		values.add("" + official.getTier());
 		values.add("" + official.getTestScore());
 		values.add("" + official.getParticipationPoints());
+		values.add("" + official.getTrainingPoints());
 		values.add("" + evals.getAverageReceivedBy(official, null, false));
 		values.add("" + evals.getAverageReceivedBy(official, null, true));
 		values.add("" + getCompositeScoreFor(official, null, true));
@@ -381,7 +389,7 @@ public class MoveUpTextRunner {
 				Map<String, String> record = parser.nextRecord();
 				if (record == null) continue;
 				
-				Official official = officials.get(record.get("Official Name"));
+				Official official = officials.get(record.get("Official Name").trim());
 				if (official == null) continue;
 				
 				String strScore1 = record.get("Test Score");
@@ -397,4 +405,42 @@ public class MoveUpTextRunner {
 			e.printStackTrace();
 		}
 	}	
+
+	private static void readTrainingPoints(String fileName, Map<String, Official> officials) {
+		try {
+			CSVParser parser = new CSVParser(fileName);
+			
+			while (parser.hasNextRecord()) {
+				Map<String, String> record = parser.nextRecord();
+				if (record == null) continue;
+				
+				Official official = officials.get(record.get("Last") + ", " + record.get("First"));
+				if (official == null) continue;
+				
+				String summer = record.get("Summer");
+				int summerScore = (summer == null || summer.isEmpty() ? 0 : Integer.parseInt(summer));
+				if (summerScore > 0) {
+					// training point for first summer meeting, participation points for each other
+					official.addSummerTraining();
+					official.addPartPoints(5 * (summerScore - 1));
+				}
+								
+				String rto = record.get("RTO");
+				int rtoScore = (rto == null || rto.isEmpty() ? 0 : Integer.parseInt(rto));
+				if (rtoScore > 0) {
+					official.addRTO();
+				}
+				
+				for (int meet = 1; meet <= 6; meet++) {
+					String meeting = record.get("Meeting" + meet);
+					if (!meeting.trim().isEmpty()) {
+						official.addMeeting();
+					}
+				}
+			}
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
 }

@@ -22,7 +22,7 @@ public class Official implements Comparable<Official> {
 	private Map<Ranking, Integer> ranks;
 	
 	public static final int MIN_GAMES_TO_RANK = 3;
-	public static final int MEETING_MAX = 4;
+	public static final int MEETING_MAX = 5;
 	
 	private static List<Official> allOfficials;
 	private static Map<Ranking, Integer> rankCounts;
