@@ -28,9 +28,9 @@ public class MoveUpTextRunner {
 	public static void main(String[] args) {
 		Scanner kb = new Scanner(System.in);
 		
-//		System.out.print("Directory? ");
-//		String directoryName = kb.nextLine();
-		String directoryName = DIRECTORY;
+		System.out.print("Directory? ");
+		String directoryName = kb.nextLine();
+//		String directoryName = DIRECTORY;
 		
 //		System.out.print("Officials file? ");
 //		String offFileName = kb.nextLine();

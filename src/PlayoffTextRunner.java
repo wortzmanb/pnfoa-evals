@@ -13,13 +13,23 @@ public class PlayoffTextRunner {
 	private static final LocalDateTime PREV_WEEK6 = LocalDateTime.of(2018, 10, 4, 0, 0, 0);
 	private static final LocalDateTime PREV_WEEK10 = LocalDateTime.of(2018, 11, 4, 0, 0, 0);
 	private static final boolean V1_EVALS_ONLY = false;
+
+	public static final double PART_POINTS_MAX = 58;
+	public static final double TRAIN_POINTS_MAX = 6;
+	public static final double EVAL_MAX = 9;
+	
+	public static final double PART_POINTS_WEIGHT = 0.1;
+	public static final double TRAIN_POINTS_WEIGHT = 0.1;
+	public static final double PREV_EVAL_WEIGHT = 5.0 / 12.0;
+	public static final double CUR_EVAL_WEIGHT = 7.0 / 12.0;
+	public static final double EVAL_WEIGHT = 0.8;	
 	
 	public static void main(String[] args) {
 		Scanner kb = new Scanner(System.in);
 		
-//		System.out.print("Directory? ");
-//		String directoryName = kb.nextLine();
-		String directoryName = DIRECTORY;
+		System.out.print("Directory? ");
+		String directoryName = kb.nextLine();
+//		String directoryName = DIRECTORY;
 		
 //		System.out.print("Officials file? ");
 //		String offFileName = kb.nextLine();
@@ -164,11 +174,11 @@ public class PlayoffTextRunner {
 		double partPoints = o.getParticipationPoints();
 		double trainPoints = o.getTrainingPoints();
 		
-		double compEval = (prevScore * 5.0 / 12.0 + currScore * 7.0 / 12.0);
-		double partScore = Math.min(1.0, partPoints / 58.0);
-		double trainScore = Math.min(1.0,  trainPoints / 6);
+		double compEval = prevScore * PREV_EVAL_WEIGHT + currScore * CUR_EVAL_WEIGHT;
+		double partScore = Math.min(1.0, partPoints / PART_POINTS_MAX);
+		double trainScore = Math.min(1.0,  trainPoints / TRAIN_POINTS_MAX);
 		
-		return 0.8 * (compEval / 9.0) + 0.1 * partScore + 0.1 * trainScore;
+		return EVAL_WEIGHT * (compEval / EVAL_MAX) + PART_POINTS_WEIGHT * partScore + TRAIN_POINTS_WEIGHT * trainScore;
 	}
 	
 	private static String[] getCsvHeaders() {
